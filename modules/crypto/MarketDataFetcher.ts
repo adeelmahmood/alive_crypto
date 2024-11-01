@@ -116,6 +116,16 @@ class MarketDataFetcher {
         return marketData.coins[symbol.toLowerCase()] || null;
     }
 
+    public async getMajorCoins(): Promise<ProcessedMarketData["coins"]> {
+        // Get BTC, ETH, and SOL
+        const marketData = await this.getMarketData();
+        return {
+            BTC: marketData.coins["btc"],
+            ETH: marketData.coins["eth"],
+            SOL: marketData.coins["sol"],
+        };
+    }
+
     public async getTopNCoins(n: number = 10): Promise<ProcessedMarketData["coins"]> {
         const marketData = await this.getMarketData();
         return Object.fromEntries(

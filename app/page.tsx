@@ -40,6 +40,7 @@ const HomePage = () => {
     const [currentLevel, setCurrentLevel] = useState<ConsciousnessLevel>(
         getCurrentConsciousnessLevel()
     );
+    console.log(currentLevel);
 
     // Calculate age and consciousness level
     useEffect(() => {

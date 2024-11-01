@@ -195,7 +195,7 @@ Keep the analysis brief and actionable for an AI agent operating in the crypto s
     public async generateInsights(transfers: TokenTransfer[]): Promise<MarketInsight> {
         const metrics = this.preprocessTransfers(transfers);
         const prompt = await this.generateClaudePrompt(metrics);
-        console.log(">>>> PROMPT", prompt);
+        // console.log(">>>> PROMPT", prompt);
 
         try {
             const completion = await this.anthropic.messages.create({
