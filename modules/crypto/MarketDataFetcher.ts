@@ -1,36 +1,9 @@
+import { CoinMarketData, ProcessedMarketData } from "@/types";
 import axios from "axios";
-
-interface CoinMarketData {
-    id: string;
-    symbol: string;
-    name: string;
-    current_price: number;
-    market_cap: number;
-    market_cap_rank: number;
-    total_volume: number;
-    price_change_percentage_24h: number;
-    market_cap_change_percentage_24h: number;
-    last_updated: string;
-}
-
-interface ProcessedMarketData {
-    timestamp: number;
-    coins: {
-        [symbol: string]: {
-            priceInUSD: number;
-            volume24h: number;
-            marketCap: number;
-            priceChange24hPercentage: number;
-            marketCapRank: number;
-        };
-    };
-    lastUpdated: string;
-}
 
 class MarketDataFetcher {
     private static instance: MarketDataFetcher;
-    private lastFetchTime: number = 0;
-    private cache: ProcessedMarketData | null = null;
+    private cache: Map<string, { data: ProcessedMarketData; timestamp: number }> = new Map();
     private readonly CACHE_DURATION = 60000; // 1 minute
     private readonly API_BASE_URL = "https://api.coingecko.com/api/v3";
     private readonly RATE_LIMIT_WAIT = 30000; // 30 seconds
@@ -44,15 +17,21 @@ class MarketDataFetcher {
         return MarketDataFetcher.instance;
     }
 
-    private async fetchFromAPI(): Promise<CoinMarketData[]> {
+    private async fetchFromAPI(
+        params: {
+            category?: string;
+            limit?: number;
+        } = {}
+    ): Promise<CoinMarketData[]> {
         try {
             const response = await axios.get(`${this.API_BASE_URL}/coins/markets`, {
                 params: {
                     vs_currency: "usd",
                     order: "market_cap_desc",
-                    per_page: 100,
+                    per_page: params.limit || 100,
                     page: 1,
                     sparkline: false,
+                    category: params.category,
                 },
             });
             return response.data;
@@ -60,7 +39,7 @@ class MarketDataFetcher {
             if (axios.isAxiosError(error) && error.response?.status === 429) {
                 // Rate limit hit, wait and retry
                 await new Promise((resolve) => setTimeout(resolve, this.RATE_LIMIT_WAIT));
-                return this.fetchFromAPI();
+                return this.fetchFromAPI(params);
             }
             throw error;
         }
@@ -70,11 +49,12 @@ class MarketDataFetcher {
         const coins: ProcessedMarketData["coins"] = {};
 
         data.forEach((coin) => {
-            coins[coin.symbol] = {
+            coins[coin.symbol.toLowerCase()] = {
+                name: coin.name,
                 priceInUSD: coin.current_price,
                 volume24h: coin.total_volume,
                 marketCap: coin.market_cap,
-                priceChange24hPercentage: coin.price_change_percentage_24h,
+                priceChange24hPercentage: coin.price_change_percentage_24h || 0,
                 marketCapRank: coin.market_cap_rank,
             };
         });
@@ -86,38 +66,77 @@ class MarketDataFetcher {
         };
     }
 
-    public async getMarketData(): Promise<ProcessedMarketData> {
+    private async getCachedData(
+        cacheKey: string,
+        fetchParams: {
+            category?: string;
+            limit?: number;
+        } = {}
+    ): Promise<ProcessedMarketData> {
         const now = Date.now();
+        const cached = this.cache.get(cacheKey);
 
         // Return cached data if it's still fresh
-        if (this.cache && now - this.lastFetchTime < this.CACHE_DURATION) {
-            return this.cache;
+        if (cached && now - cached.timestamp < this.CACHE_DURATION) {
+            return cached.data;
         }
 
         try {
-            const rawData = await this.fetchFromAPI();
-            this.cache = this.processMarketData(rawData);
-            this.lastFetchTime = now;
-            return this.cache;
+            const rawData = await this.fetchFromAPI(fetchParams);
+            const processed = this.processMarketData(rawData);
+            this.cache.set(cacheKey, { data: processed, timestamp: now });
+            return processed;
         } catch (error) {
-            if (this.cache) {
+            if (cached) {
                 // Return stale cache if fetch fails
-                console.warn("Failed to fetch fresh market data, returning cached data");
-                return this.cache;
+                console.warn(
+                    `Failed to fetch fresh market data for ${cacheKey}, returning cached data`
+                );
+                return cached.data;
             }
             throw error;
         }
     }
 
-    public async getSpecificCoin(
-        symbol: string
-    ): Promise<ProcessedMarketData["coins"][string] | null> {
-        const marketData = await this.getMarketData();
-        return marketData.coins[symbol.toLowerCase()] || null;
+    /**
+     * Get market data for AI and meme coins
+     */
+    public async getAIMemeCoins(limit: number = 10): Promise<ProcessedMarketData> {
+        return this.getCachedData("ai-meme", { category: "ai-meme-coins", limit });
+    }
+
+    /**
+     * Get formatted summary of AI and meme coins
+     */
+    public async getAIMemeSummary(): Promise<string> {
+        const data = await this.getAIMemeCoins();
+
+        const formatPrice = (price: number) =>
+            price < 0.01 ? price.toExponential(2) : price.toFixed(2);
+
+        const formatChange = (change: number) => `${change >= 0 ? "+" : ""}${change.toFixed(1)}%`;
+
+        const sortedCoins = Object.entries(data.coins)
+            .sort(([, a], [, b]) => b.marketCap - a.marketCap)
+            .slice(0, 10)
+            .map(
+                ([symbol, coin]) =>
+                    `${coin.name} (${symbol.toUpperCase()}): $${formatPrice(
+                        coin.priceInUSD
+                    )} (${formatChange(coin.priceChange24hPercentage)})`
+            );
+
+        return sortedCoins.join("\n");
+    }
+
+    /**
+     * Get market data for major coins
+     */
+    public async getMarketData(): Promise<ProcessedMarketData> {
+        return this.getCachedData("major");
     }
 
     public async getMajorCoins(): Promise<ProcessedMarketData["coins"]> {
-        // Get BTC, ETH, and SOL
         const marketData = await this.getMarketData();
         return {
             BTC: marketData.coins["btc"],
@@ -133,6 +152,13 @@ class MarketDataFetcher {
                 .sort((a, b) => a[1].marketCapRank - b[1].marketCapRank)
                 .slice(0, n)
         );
+    }
+
+    public async getSpecificCoin(
+        symbol: string
+    ): Promise<ProcessedMarketData["coins"][string] | null> {
+        const marketData = await this.getMarketData();
+        return marketData.coins[symbol.toLowerCase()] || null;
     }
 }
 

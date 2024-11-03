@@ -1,17 +1,6 @@
 import axios from "axios";
 import MarketDataFetcher from "./MarketDataFetcher";
-
-interface TokenTransfer {
-    from: string;
-    to: string;
-    value: string;
-    valueInUSD: number;
-    timestamp: number;
-    asset: string;
-    hash: string;
-    tokenName: string;
-    tokenSymbol: string;
-}
+import { TokenTransfer } from "@/types";
 
 interface OnChainData {
     transfers: TokenTransfer[];

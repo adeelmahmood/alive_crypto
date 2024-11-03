@@ -1,61 +1,13 @@
-import Anthropic from "@anthropic-ai/sdk";
-
-interface TokenTransfer {
-    from: string;
-    to: string;
-    value: string;
-    valueInUSD: number;
-    timestamp: number;
-    asset: string;
-    hash: string;
-    tokenName: string;
-    tokenSymbol: string;
-}
-
-interface MarketInsight {
-    timestamp: number;
-    summary: string;
-    metrics: {
-        totalVolumeUSD: number;
-        volumeByAsset: { [key: string]: number };
-        largeTransferCount: number;
-        uniqueAddresses: number;
-        topSenders: { address: string; volumeUSD: number; assets: { [key: string]: number } }[];
-        topReceivers: { address: string; volumeUSD: number; assets: { [key: string]: number } }[];
-        recentLargeTransfers: {
-            from: string;
-            to: string;
-            valueUSD: number;
-            asset: string;
-            timestamp: number;
-        }[];
-    };
-}
-
-interface ProcessedMetrics {
-    totalVolumeUSD: number;
-    volumeByAsset: { [key: string]: number };
-    uniqueAddresses: Set<string>;
-    largeTransferCount: number;
-    addressMetrics: {
-        [address: string]: {
-            volumeUSD: number;
-            assets: { [asset: string]: number };
-            type: "sender" | "receiver" | "both";
-        };
-    };
-    recentLargeTransfers: TokenTransfer[];
-}
+import { MarketInsight, ProcessedMetrics, TokenTransfer } from "@/types";
+import { ClaudeAIService } from "../ai/ClaudeAIService";
 
 class OnChainDataInsights {
     private static instance: OnChainDataInsights;
     private readonly LARGE_TRANSFER_THRESHOLD_USD = 100000; // $100k threshold
-    private anthropic: Anthropic;
+    private aiService: ClaudeAIService;
 
     private constructor() {
-        this.anthropic = new Anthropic({
-            apiKey: process.env.ANTHROPIC_API_KEY!,
-        });
+        this.aiService = new ClaudeAIService();
     }
 
     public static getInstance(): OnChainDataInsights {
@@ -194,26 +146,13 @@ Keep the analysis brief and actionable for an AI agent operating in the crypto s
 
     public async generateInsights(transfers: TokenTransfer[]): Promise<MarketInsight> {
         const metrics = this.preprocessTransfers(transfers);
-        const prompt = await this.generateClaudePrompt(metrics);
-        // console.log(">>>> PROMPT", prompt);
+        const systemPrompt =
+            "You are an expert crypto market analyst. Analyze on-chain transfer patterns across multiple tokens to identify market insights, trends, and potential risks.";
+        const prompt = this.generateClaudePrompt(metrics);
 
         try {
-            const completion = await this.anthropic.messages.create({
-                model: "claude-3-5-sonnet-20241022",
-                max_tokens: 1000,
-                temperature: 0.8,
-                system: "You are an expert crypto market analyst. Analyze on-chain transfer patterns across multiple tokens to identify market insights, trends, and potential risks.",
-                messages: [
-                    {
-                        role: "user",
-                        content: prompt,
-                    },
-                ],
-            });
-
-            if (completion.content[0].type !== "text") {
-                throw new Error("Failed to generate market insights");
-            }
+            // call ai service to generate insights
+            const response = await this.aiService.generateResponse(systemPrompt, prompt);
 
             // Sort addresses by absolute volume
             const sortedAddresses = Object.entries(metrics.addressMetrics).sort(
@@ -222,7 +161,7 @@ Keep the analysis brief and actionable for an AI agent operating in the crypto s
 
             const insight: MarketInsight = {
                 timestamp: Date.now(),
-                summary: completion.content[0].text,
+                summary: response.response,
                 metrics: {
                     totalVolumeUSD: metrics.totalVolumeUSD,
                     volumeByAsset: metrics.volumeByAsset,
