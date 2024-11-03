@@ -19,8 +19,8 @@ export const calculateLLMCost = (model: any, inputTokens: number, outputTokens: 
     const outputCost = (outputTokens / 1000000) * LLM.outputCost;
 
     // print cost
-    console.log(`Input cost: $${inputCost.toFixed(6)}`);
-    console.log(`Output cost: $${outputCost.toFixed(6)}`);
+    // console.log(`Input cost: $${inputCost.toFixed(6)}`);
+    // console.log(`Output cost: $${outputCost.toFixed(6)}`);
 
     return { inputCost, outputCost };
 };

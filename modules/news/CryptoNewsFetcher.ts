@@ -223,13 +223,17 @@ class CryptoNewsFetcher {
         const articles = news.articles
             .slice(0, 10) // Top 10 most relevant articles
             .map((article) => {
+                const summary =
+                    article.description.length > 300
+                        ? `${article.description.substring(0, 300)}...`
+                        : article.description;
                 return `
 [ARTICLE]
 Title: ${article.title}
 Source: ${article.source}
 Date: ${article.publishedAt.toISOString()}
 Sentiment: ${article.sentiment}
-Summary: ${article.description.substring(0, 300)}...
+Summary: ${summary}
 [/ARTICLE]`;
             })
             .join("\n");

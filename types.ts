@@ -124,3 +124,39 @@ export interface TweetRecord {
         replies?: number;
     };
 }
+
+// Types for memory storage
+
+export enum MemoryType {
+    MILESTONE = "MILESTONE",
+    COMMITMENT = "COMMITMENT",
+    CRISIS = "CRISIS",
+    RELATIONSHIP = "RELATIONSHIP",
+    INSIGHT = "INSIGHT",
+}
+
+export interface MemoryRecord {
+    id?: string;
+    created_at?: string;
+    type: MemoryType;
+    content: string;
+    significance: number;
+    reason: string;
+    tags: string[];
+    context: string;
+    tweet_id: string;
+}
+
+export interface MemoryEvaluationResponse {
+    evaluation: {
+        qualifies_as_memory: boolean;
+        explanation: string;
+        if_memory?: {
+            type: MemoryType;
+            content: string;
+            significance: number;
+            reason: string;
+            tags: string[];
+        };
+    };
+}

@@ -24,7 +24,7 @@ export class ClaudeAIService extends BaseAIService {
         }
 
         try {
-            console.log(this.constructor.name, "Generating response for model", this.model);
+            // console.log(this.constructor.name, "Generating response for model", this.model);
 
             const LLM = LLMS.find((m) => m.model === this.model);
             if (!LLM) {
@@ -52,7 +52,7 @@ export class ClaudeAIService extends BaseAIService {
                 throw new Error("No response generated.");
             }
 
-            console.log("response usage", completion.usage);
+            // console.log("response usage", completion.usage);
             const { inputCost, outputCost } = calculateLLMCost(
                 this.model,
                 completion.usage?.input_tokens,
