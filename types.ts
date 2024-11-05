@@ -88,6 +88,11 @@ export interface AIResponse {
     cost: number;
 }
 
+export interface AIImageResponse {
+    b64_json: string;
+    revised_prompt: string;
+}
+
 // Tweet AI response types
 
 export interface TweetResponse {

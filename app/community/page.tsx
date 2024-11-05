@@ -1,81 +1,45 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import {
-    Sparkles,
-    Search,
-    TrendingUp,
-    Filter,
-    Heart,
-    Share2,
-    Clock,
-    Zap,
-    SlidersHorizontal,
-    X,
-} from "lucide-react";
-import AliveBackground from "../components/AliveBackground";
+import { Sparkles, Search, TrendingUp, Heart, Share2, Clock } from "lucide-react";
 import ImageCreatorModal from "../components/ImageCreatorModal";
 
-import sample1 from "@/app/images/art/art-sample1.png";
-import sample2 from "@/app/images/art/art-sample2.png";
-import sample3 from "@/app/images/art/art-sample3.png";
+import AliveBackgroundVibrant from "../components/AliveBackgroundVibrant";
+import { useArtworks } from "../hooks/useArtworks";
+
+interface ArtworkType {
+    imageUrl: string;
+    title: string;
+    creator: string;
+    timestamp: string;
+    likes: number;
+    marketMood: string;
+    tags: string[];
+    description: string;
+}
 
 const CommunityArtPage = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedFilter, setSelectedFilter] = useState("all");
     const [imageCreatorOpen, setImageCreatorOpen] = useState(false);
-    const [selectedArtwork, setSelectedArtwork] = useState(null);
+    const [selectedArtwork, setSelectedArtwork] = useState<ArtworkType | null>(null);
 
-    // Example artwork data structure
-    const [artworks, setArtworks] = useState([
-        {
-            id: 1,
-            imageUrl: sample2.src,
-            title: "The Great Meme Ascension",
-            creator: "AliveAI",
-            timestamp: "2024-03-15T10:00:00Z",
-            likes: 156,
-            marketMood: "Bullish",
-            tags: ["memecoins", "AI", "space", "surreal", "dogecoin"],
-            description:
-                "Created during bullish market sentiment. This piece explores the intersection of artificial intelligence, cryptocurrency markets, and community-driven innovation.",
-        },
-        {
-            id: 2,
-            imageUrl: sample1.src,
-            title: "Binary Bears to Digital Bulls",
-            creator: "AliveAI",
-            timestamp: "2024-03-15T11:30:00Z",
-            likes: 189,
-            marketMood: "Transition",
-            tags: ["market", "transformation", "cyberpunk", "binary", "bull-bear"],
-            description:
-                "Created during market transition sentiment. This piece explores the intersection of artificial intelligence, cryptocurrency markets, and community-driven innovation.",
-        },
-        {
-            id: 3,
-            imageUrl: sample3.src,
-            title: "The AI Oracle's Vision",
-            creator: "AliveAI",
-            timestamp: "2024-03-15T12:45:00Z",
-            likes: 223,
-            marketMood: "Prophetic",
-            tags: ["oracle", "future", "AI", "mystical", "predictions"],
-            description:
-                "Created during prophetic market sentiment. This piece explores the intersection of artificial intelligence, cryptocurrency markets, and community-driven innovation.",
-        },
-    ]);
-
-    // copy artworks multiple times
-    useEffect(() => {
-        setArtworks([...artworks, ...artworks, ...artworks, ...artworks]);
-    }, []);
+    // Use the custom hook to fetch artworks
+    const { artworks, loading, error } = useArtworks({
+        searchQuery,
+        marketMood:
+            selectedFilter === "bullish"
+                ? "Bullish"
+                : selectedFilter === "bearish"
+                ? "Bearish"
+                : undefined,
+    });
 
     const filterOptions = [
         { id: "all", label: "All Art" },
@@ -86,30 +50,33 @@ const CommunityArtPage = () => {
     ];
 
     const filteredArtworks = artworks.filter((artwork) => {
-        if (searchQuery) {
-            return (
-                artwork.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                artwork.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-            );
-        }
-
         switch (selectedFilter) {
             case "trending":
-                return artwork.likes > 100;
+                return (artwork.likes || 0) > 100;
             case "recent":
-                return new Date(artwork.timestamp) > new Date(Date.now() - 86400000);
-            case "bullish":
-                return artwork.marketMood === "Bullish";
-            case "bearish":
-                return artwork.marketMood === "Bearish";
+                return (
+                    artwork.timestamp &&
+                    new Date(artwork.timestamp) > new Date(Date.now() - 86400000)
+                );
             default:
                 return true;
         }
     });
 
+    if (error) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-white text-center">
+                    <h2 className="text-2xl font-bold mb-4">Error Loading Artworks</h2>
+                    <p>{error}</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen relative">
-            <AliveBackground />
+            <AliveBackgroundVibrant />
 
             {/* Overlay gradient */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent z-0" />
@@ -168,56 +135,70 @@ const CommunityArtPage = () => {
                     </div>
                 </div>
 
-                {/* Gallery Grid */}
+                {/* Gallery Grid with Loading State */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     <AnimatePresence>
-                        {filteredArtworks.map((artwork) => (
-                            <motion.div
-                                key={artwork.id}
-                                layout
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                transition={{ duration: 0.3 }}
-                                className="group relative"
-                            >
-                                <div
-                                    onClick={() => setSelectedArtwork(artwork)}
-                                    className="relative aspect-square rounded-xl overflow-hidden cursor-pointer"
-                                >
-                                    <Image
-                                        src={artwork.imageUrl}
-                                        alt={artwork.title}
-                                        fill
-                                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                                        priority
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 " />
+                        {loading
+                            ? // Loading skeleton
+                              Array.from({ length: 8 }).map((_, index) => (
+                                  <motion.div
+                                      key={`skeleton-${index}`}
+                                      className="aspect-square rounded-xl bg-white/10 animate-pulse"
+                                  />
+                              ))
+                            : filteredArtworks.map((artwork, index) => (
+                                  <motion.div
+                                      key={artwork.id}
+                                      layout
+                                      initial={{ opacity: 0, scale: 0.9 }}
+                                      animate={{ opacity: 1, scale: 1 }}
+                                      exit={{ opacity: 0, scale: 0.9 }}
+                                      transition={{ duration: 0.3 }}
+                                      className="group relative"
+                                  >
+                                      <div
+                                          onClick={() => setSelectedArtwork(artwork)}
+                                          className="relative aspect-square rounded-xl overflow-hidden cursor-pointer"
+                                      >
+                                          <Image
+                                              src={artwork.imageUrl || "/placeholder.png"} // Add a fallback image
+                                              alt={artwork.title}
+                                              fill
+                                              className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                              priority={index < 4} // Only prioritize first 4 images
+                                              loading={index < 4 ? "eager" : "lazy"} // Lazy load images below the fold
+                                              onError={(e) => {
+                                                  const img = e.target as HTMLImageElement;
+                                                  img.src = "/placeholder.png"; // Fallback on error
+                                              }}
+                                          />
 
-                                    {/* Overlay Content */}
-                                    <div className="absolute inset-0 p-4 flex flex-col justify-end">
-                                        <h3 className="text-white font-semibold text-lg mb-2">
-                                            {artwork.title}
-                                        </h3>
-                                        <div className="flex items-center gap-2 text-white/80 text-sm">
-                                            <Clock className="h-4 w-4" />
-                                            {new Date(artwork.timestamp).toLocaleDateString()}
-                                        </div>
-                                        <div className="flex items-center gap-2 mt-2">
-                                            <Badge className="bg-white/20 text-white">
-                                                <TrendingUp className="h-3 w-3 mr-1" />
-                                                {artwork.marketMood}
-                                            </Badge>
-                                            <Badge className="bg-pink-500/20 text-pink-200">
-                                                <Heart className="h-3 w-3 mr-1" />
-                                                {artwork.likes}
-                                            </Badge>
-                                        </div>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))}
+                                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 " />
+
+                                          {/* Overlay Content */}
+                                          <div className="absolute inset-0 p-4 flex flex-col justify-end">
+                                              <h3 className="text-white font-semibold text-lg mb-2">
+                                                  {artwork.title}
+                                              </h3>
+                                              <div className="flex items-center gap-2 text-white/80 text-sm">
+                                                  <Clock className="h-4 w-4" />
+                                                  {new Date(artwork.timestamp).toLocaleDateString()}
+                                              </div>
+                                              <div className="flex items-center gap-2 mt-2">
+                                                  <Badge className="bg-white/20 text-white">
+                                                      <TrendingUp className="h-3 w-3 mr-1" />
+                                                      {artwork.marketMood}
+                                                  </Badge>
+                                                  <Badge className="bg-pink-500/20 text-pink-200">
+                                                      <Heart className="h-3 w-3 mr-1" />
+                                                      {artwork.likes}
+                                                  </Badge>
+                                              </div>
+                                          </div>
+                                      </div>
+                                  </motion.div>
+                              ))}
                     </AnimatePresence>
                 </div>
             </div>
@@ -227,38 +208,32 @@ const CommunityArtPage = () => {
 
             {/* Artwork Detail Modal */}
             <Dialog open={!!selectedArtwork} onOpenChange={() => setSelectedArtwork(null)}>
-                <DialogContent className="max-w-4xl mx-4 bg-gradient-to-b from-purple-950/90 via-pink-950/90 to-orange-950/90 text-white backdrop-blur-sm">
+                <DialogContent className="max-w-3xl mx-auto bg-gradient-to-b from-purple-950/90 via-pink-950/90 to-orange-950/90 text-white backdrop-blur-sm max-h-screen overflow-y-auto">
                     {selectedArtwork && (
                         <>
                             <DialogHeader>
-                                <DialogTitle className="text-2xl font-bold flex items-center justify-between">
+                                <DialogTitle className="text-2xl font-bold flex items-center">
                                     {selectedArtwork.title}
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => setSelectedArtwork(null)}
-                                        className="text-white/60 hover:text-white"
-                                    >
-                                        <X className="h-5 w-5" />
-                                    </Button>
                                 </DialogTitle>
                             </DialogHeader>
 
-                            <div className="mt-4">
-                                <div className="aspect-square rounded-xl overflow-hidden mb-4">
-                                    <div className="relative w-full h-full">
-                                        <Image
-                                            src={selectedArtwork.imageUrl}
-                                            alt={selectedArtwork.title}
-                                            fill
-                                            className="object-cover"
-                                            sizes="(max-width: 1024px) 90vw, 1024px"
-                                            priority
-                                        />
-                                    </div>
+                            <div className="mt-4 flex flex-col items-center">
+                                {/* Define a responsive container with position relative */}
+                                <div
+                                    className="relative w-full max-h-[70vh] rounded-xl overflow-hidden mb-4"
+                                    style={{ height: "70vh" }}
+                                >
+                                    <Image
+                                        src={selectedArtwork.imageUrl}
+                                        alt={selectedArtwork.title}
+                                        className="object-contain"
+                                        fill
+                                        sizes="(max-width: 1024px) 90vw, 1024px"
+                                        priority
+                                    />
                                 </div>
 
-                                <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center justify-between mb-4 w-full">
                                     <div className="flex items-center gap-4">
                                         <Badge className="bg-white/20 text-white">
                                             <TrendingUp className="h-3 w-3 mr-1" />

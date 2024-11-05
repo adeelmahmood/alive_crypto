@@ -2,7 +2,7 @@ import { Artwork, ArtworkCreate } from "@/types";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { v4 as uuidv4 } from "uuid";
 
-export class ImageDatastore {
+export class ArtworkDatastore {
     private supabase: SupabaseClient;
     private STORAGE_BUCKET = "artworks";
 
