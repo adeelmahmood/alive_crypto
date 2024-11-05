@@ -13,7 +13,11 @@ export class MemoryDatasore {
             throw new Error("Missing Supabase environment variables");
         }
 
-        this.supabase = createClient(supabaseUrl, supabaseKey);
+        this.supabase = createClient(supabaseUrl, supabaseKey, {
+            auth: {
+                persistSession: false, // Since we're using service role, we don't need to persist sessions
+            },
+        });
     }
 
     public async saveMemory(memory: MemoryRecord): Promise<void> {

@@ -24,9 +24,10 @@ export class TwitterComposer {
         this.marketDataFetcher = MarketDataFetcher.getInstance();
         this.onChainDataFetcher = OnChainDataFetcher.getInstance();
         this.onChainDataInsights = OnChainDataInsights.getInstance();
+
         this.newsFetcher = new CryptoNewsFetcher();
         this.aiService = new ClaudeAIService();
-        this.tweetDatastore = TweetDatastore.getInstance();
+        this.tweetDatastore = new TweetDatastore();
         this.config = config;
     }
 
@@ -34,12 +35,14 @@ export class TwitterComposer {
      * Fetch all required market and crypto data
      */
     private async gatherData() {
-        const [majorCoins, aiMemeCoinsSummary, onchainMetrics, news] = await Promise.all([
-            this.marketDataFetcher.getMajorCoins(),
-            this.marketDataFetcher.getAIMemeSummary(),
-            this.onChainDataFetcher.getMetrics(),
-            this.newsFetcher.getNews(),
-        ]);
+        console.log("Requesting major coins data...");
+        const majorCoins = await this.marketDataFetcher.getMajorCoins();
+        console.log("Requesting AI meme coins data...");
+        const aiMemeCoinsSummary = await this.marketDataFetcher.getAIMemeSummary();
+        console.log("Requesting on-chain metrics...");
+        const onchainMetrics = await this.onChainDataFetcher.getMetrics();
+        console.log("Requesting news...");
+        const news = await this.newsFetcher.getNews();
 
         const marketInsight = await this.onChainDataInsights.generateInsights(
             onchainMetrics.transfers

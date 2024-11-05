@@ -12,9 +12,21 @@ export const MarketData = async () => {
         // const btcData = await fetcher.getSpecificCoin("btc");
         // console.log("Bitcoin data:", btcData);
 
-        // // Get top 10 coins
-        const topCoins = await fetcher.getTopNCoins(10);
-        console.log("Top 10 coins:", topCoins);
+        // time this operation
+        // const s = Date.now();
+        const coins = await fetcher.getMajorCoins();
+
+        const result = Object.entries(coins)
+            .map(
+                ([symbol, data]) =>
+                    `${symbol.toUpperCase()}: $${data.priceInUSD.toFixed(2)} (${
+                        data.priceChange24hPercentage >= 0 ? "+" : ""
+                    }${data.priceChange24hPercentage.toFixed(1)}%)`
+            )
+            .join("\n");
+        console.log("Major coins:", result);
+        // await fetcher.getMajorCoins();
+        // console.log("Time taken:", Date.now() - s, "ms");
     } catch (error) {
         console.error("Error fetching market data:", error);
     }

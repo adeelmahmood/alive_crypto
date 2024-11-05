@@ -1,4 +1,5 @@
 import { CoinMarketData, ProcessedMarketData } from "@/types";
+import chalk from "chalk";
 import axios from "axios";
 
 class MarketDataFetcher {
@@ -73,15 +74,19 @@ class MarketDataFetcher {
             limit?: number;
         } = {}
     ): Promise<ProcessedMarketData> {
+        console.log("Requesting market data for", cacheKey);
         const now = Date.now();
         const cached = this.cache.get(cacheKey);
 
         // Return cached data if it's still fresh
         if (cached && now - cached.timestamp < this.CACHE_DURATION) {
+            console.log(chalk.green("Using <cached> market data for", cacheKey));
             return cached.data;
         }
 
         try {
+            console.log(chalk.magenta("Fetching fresh market data for", cacheKey));
+
             const rawData = await this.fetchFromAPI(fetchParams);
             const processed = this.processMarketData(rawData);
             this.cache.set(cacheKey, { data: processed, timestamp: now });

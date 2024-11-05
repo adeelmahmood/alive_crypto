@@ -123,11 +123,16 @@ class OnChainDataFetcher {
 
     public async getMetrics(assets: string[] = ["USDT", "WETH", "WBTC"]): Promise<OnChainData> {
         try {
-            const transferPromises = assets.map((asset) => this.fetchTransfersForAsset(asset));
-            const allTransfers = await Promise.all(transferPromises);
+            console.log("Fetching metrics for assets", assets);
+            const allTransfers = [];
+
+            for (const asset of assets) {
+                const transfers = await this.fetchTransfersForAsset(asset);
+                allTransfers.push(...transfers);
+            }
 
             return {
-                transfers: allTransfers.flat(),
+                transfers: allTransfers,
                 timestamp: Date.now(),
             };
         } catch (error) {

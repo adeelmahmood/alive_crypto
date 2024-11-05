@@ -8,7 +8,7 @@ import { AIResponse } from "@/types";
 export class ClaudeAIService extends BaseAIService {
     private anthropic: Anthropic;
 
-    constructor(model: string = LLM_MODELS.ANTHROPIC_CLAUDE_3_5_SONNET) {
+    constructor(model: string = LLM_MODELS.ANTHROPIC_CLAUDE_3_5_HAIKU_NEW) {
         super(model);
         this.anthropic = new Anthropic();
     }

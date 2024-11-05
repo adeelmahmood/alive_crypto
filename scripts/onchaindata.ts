@@ -11,9 +11,9 @@ export const Onchaindata = async () => {
         console.log("On-chain metrics:", metrics);
 
         // get insights
-        const insights = OnChainDataInsights.getInstance();
-        const marketInsight = await insights.generateInsights(metrics.transfers);
-        console.log("Market insight:", JSON.stringify(marketInsight, null, 2));
+        // const insights = OnChainDataInsights.getInstance();
+        // const marketInsight = await insights.generateInsights(metrics.transfers);
+        // console.log("Market insight:", JSON.stringify(marketInsight, null, 2));
     } catch (error) {
         console.error("Error:", error);
     }

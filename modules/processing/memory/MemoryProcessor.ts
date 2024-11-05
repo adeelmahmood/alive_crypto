@@ -127,9 +127,7 @@ ${context}
 INTERACTION TO EVALUATE:
 
 Tweet Content: "${tweetRecord.content}"
-Self Reflection: "${tweetRecord.insights.self_reflection}"
-Current Focus: "${tweetRecord.state.growth_focus}"
-Community Goal: "${tweetRecord.state.community_goal}"
+Thoughts: "${tweetRecord.thoughts}"
 
 
 Analyze this interaction and determine if it qualifies as a core memory. If it does, provide the memory details in the format below. If not, explain why not.`;

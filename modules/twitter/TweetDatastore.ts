@@ -6,7 +6,7 @@ export class TweetDatastore {
     private static instance: TweetDatastore;
     private supabase: SupabaseClient;
 
-    private constructor() {
+    public constructor() {
         const supabaseUrl = process.env.SUPABASE_URL;
         const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -17,32 +17,12 @@ export class TweetDatastore {
         this.supabase = createClient(supabaseUrl, supabaseKey);
     }
 
-    public static getInstance(): TweetDatastore {
-        if (!TweetDatastore.instance) {
-            TweetDatastore.instance = new TweetDatastore();
-        }
-        return TweetDatastore.instance;
-    }
-
     /**
      * Parse YAML response into structured data
      */
     private parseResponse(rawResponse: string): TweetResponse {
         try {
             const parsed = yaml.load(rawResponse) as TweetResponse;
-
-            // Validate required fields
-            if (
-                !parsed.state?.dominant_trait ||
-                !parsed.state?.growth_focus ||
-                !parsed.state?.community_goal ||
-                !parsed.tweet ||
-                !parsed.insights?.self_reflection ||
-                !Array.isArray(parsed.insights?.next_steps)
-            ) {
-                console.warn("Missing required fields in the Tweet response");
-            }
-
             return parsed;
         } catch (error: any) {
             throw new Error(`Failed to parse response: ${error.message}`);
@@ -59,9 +39,7 @@ export class TweetDatastore {
             .from("tweets")
             .insert({
                 content: parsed.tweet,
-                raw_response: rawResponse,
-                state: parsed.state,
-                insights: parsed.insights,
+                thoughts: parsed.thoughts,
                 posted: false,
             })
             .select()

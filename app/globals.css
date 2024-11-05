@@ -139,3 +139,49 @@ body {
 .animation-delay-1600 {
     animation-delay: 1600ms;
 }
+
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #ffbf00 transparent;
+}
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #ffbf00;
+    border-radius: 4px;
+}
+@media (prefers-color-scheme: dark) {
+    .custom-scrollbar {
+        scrollbar-color: #9333ea transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: #9333ea;
+    }
+}
+
+/* Light mode styles */
+.thought-stream {
+    scrollbar-width: thin;
+    scrollbar-color: #ffbf00 transparent; /* Light mode colors */
+}
+
+/* Dark mode styles */
+@media (prefers-color-scheme: dark) {
+    .thought-stream {
+        scrollbar-color: #9333ea transparent; /* Dark mode colors */
+    }
+    .thought-stream::-webkit-scrollbar-thumb {
+        background-color: #9333ea; /* Dark mode thumb color */
+    }
+}
+
+/* Webkit-specific scrollbar styling for light mode */
+.thought-stream::-webkit-scrollbar {
+    width: 8px;
+}
+
+.thought-stream::-webkit-scrollbar-thumb {
+    background-color: #ffbf00; /* Light mode thumb color */
+    border-radius: 4px;
+}

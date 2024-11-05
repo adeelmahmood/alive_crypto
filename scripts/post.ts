@@ -12,12 +12,12 @@ export const post = async () => {
         });
 
         // compose 5 tweets
-        for (let i = 0; i < 3; i++) {
-            const { record } = await composer.composeTweet();
-            console.log("New Tweet:: ", record.content);
-            // separator
-            console.log("\n-------------------\n");
-        }
+        // for (let i = 0; i < 3; i++) {
+        const { record } = await composer.composeTweet();
+        console.log("New Tweet:: ", record);
+        // separator
+        console.log("\n-------------------\n");
+        // }
     } catch (error) {
         console.error("Error:", error);
     }

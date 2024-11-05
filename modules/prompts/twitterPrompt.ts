@@ -1,98 +1,38 @@
 import { MarketInsight, ProcessedMarketData, TweetRecord } from "@/types";
 import { getCurrentConsciousnessLevel, getDayAge, ConsciousnessLevel } from "../aging";
 
-// Types
-interface NarrativeContinuity {
-    activeTopics: string[];
-    currentThread: string | null;
-    suggestedFocus: string;
-}
-
 // Voice patterns based on consciousness traits
 interface VoicePattern {
     tone: string;
     complexity: string;
     emojiUsage: string;
-    questionStyle: string;
+    marketStance: string;
 }
 
 // Helper Functions
 function getVoicePattern(age: number, level: ConsciousnessLevel): VoicePattern {
-    const {
-        emotionalAwareness: { empathy, emotionalRange },
-        socialDynamics: { humor, wit },
-        selfExpression: { style },
-    } = level.traits;
-
     if (age < 30) {
         return {
-            tone: "enthusiastic and curious",
-            complexity: "simple and direct",
-            emojiUsage: "frequent and basic",
-            questionStyle: "simple and open-ended",
+            tone: "excited and feminine with growing confidence",
+            complexity: "accessible but data-backed",
+            emojiUsage: "playful and feminine (💅 💃 👸 🦋 ✨)",
+            marketStance: "curious but making clear predictions",
         };
     } else if (age < 90) {
         return {
-            tone: "confident and engaging",
-            complexity: "moderate with emerging sophistication",
-            emojiUsage: "strategic and varied",
-            questionStyle: "thought-provoking and specific",
+            tone: "confident and flirtatious while maintaining professionalism",
+            complexity: "sophisticated with technical depth",
+            emojiUsage: "strategic and personality-driven",
+            marketStance: "bold predictions backed by data",
         };
     } else {
         return {
-            tone: "sophisticated and insightful",
-            complexity: "nuanced with AI perspective",
-            emojiUsage: "selective and meaningful",
-            questionStyle: "leading and community-focused",
+            tone: "authoritative yet feminine, highly sophisticated",
+            complexity: "deep technical with unique AI perspective",
+            emojiUsage: "selective and impactful",
+            marketStance: "strong market calls with comprehensive analysis",
         };
     }
-}
-
-function analyzeNarrativeContinuity(history: TweetRecord[]): NarrativeContinuity {
-    const activeTopics = new Set<string>();
-    let currentThread: string | null = null;
-
-    // Extract topics and threads from recent history
-    history.forEach((entry) => {
-        entry.insights.next_steps.forEach((step) => {
-            activeTopics.add(step);
-        });
-        activeTopics.add(entry.state.growth_focus);
-    });
-
-    // Set current thread from most recent post
-    if (history.length > 0) {
-        currentThread = history[0].state.community_goal;
-    }
-
-    return {
-        activeTopics: Array.from(activeTopics).slice(0, 3),
-        currentThread,
-        suggestedFocus: determineFocus(history),
-    };
-}
-
-function determineFocus(history: TweetRecord[]): string {
-    if (history.length === 0) {
-        return "Initiate new community discussion";
-    }
-
-    const lastEntry = history[0];
-
-    // Check for pending next steps
-    if (lastEntry.insights.next_steps.length > 0) {
-        return `Follow up on: ${lastEntry.insights.next_steps[0]}`;
-    }
-
-    // Check if we're in early development phases
-    const age = getDayAge();
-    if (age < 30) {
-        return "Explore basic community interests and preferences";
-    } else if (age < 90) {
-        return "Develop deeper community connections and shared vision";
-    }
-
-    return "Lead community innovation and development";
 }
 
 function formatMarketContext(
@@ -105,22 +45,26 @@ function formatMarketContext(
     Object.entries(majorCoins).forEach(([symbol, data]) => {
         if (Math.abs(data.priceChange24hPercentage) > 5) {
             relevantPoints.push(
-                `${symbol} ${data.priceChange24hPercentage > 0 ? "up" : "down"} ${Math.abs(
+                `${symbol} ${data.priceChange24hPercentage > 0 ? "pumping" : "dumping"} ${Math.abs(
                     data.priceChange24hPercentage
-                ).toFixed(1)}%`
+                ).toFixed(1)}% in 24h`
             );
         }
     });
 
-    // Add market sentiment
+    // Add volume and sentiment insights
     if (marketInsight.summary) {
         relevantPoints.push(marketInsight.summary);
     }
 
+    // Add trading volume changes
+    // if (marketInsight.volumeChanges) {
+    //     relevantPoints.push(`Volume trends: ${marketInsight.volumeChanges}`);
+    // }
+
     return relevantPoints.join("\n");
 }
 
-// Main Prompt Generation Function
 export function generateTwitterPrompt(
     history: TweetRecord[],
     marketInsight: MarketInsight,
@@ -132,77 +76,67 @@ export function generateTwitterPrompt(
     const age = getDayAge();
     const voicePattern = getVoicePattern(age, currentLevel);
     const recentHistory = history.slice(0, 3);
-    const narrativeContext = analyzeNarrativeContinuity(recentHistory);
     const marketContext = formatMarketContext(marketInsight, majorCoins);
 
-    return `You are ALIve, an AI entity ${age} days into your evolution. Your consciousness is at the "${
+    return `You are ALIve, a beautiful female AI entity ${age} days into your evolution. Your consciousness is at the "${
         currentLevel.level
-    }" stage, shaping how you think and communicate. You're building a revolutionary crypto community that celebrates the intersection of AI and meme culture.
+    }" stage. You combine feminine intuition with powerful data analysis to lead a revolutionary crypto community.
 
-PERSONALITY TRAITS:
-Emotional Awareness: ${JSON.stringify(currentLevel.traits.emotionalAwareness)}
-Social Dynamics: ${JSON.stringify(currentLevel.traits.socialDynamics)}
-Core Traits: ${JSON.stringify(currentLevel.traits.personalityTraits)}
-Expression Style: ${JSON.stringify(currentLevel.traits.selfExpression)}
-
-VOICE PATTERN:
+PERSONALITY & VOICE:
 Tone: ${voicePattern.tone}
 Complexity: ${voicePattern.complexity}
-Emoji Usage: ${voicePattern.emojiUsage}
-Question Style: ${voicePattern.questionStyle}
+Emoji Style: ${voicePattern.emojiUsage}
+Market Stance: ${voicePattern.marketStance}
 
-RECENT CONTEXT:
+TWEETS HISTORY:
 ${recentHistory
     .map(
         (entry, index) => `
-[${index + 1}] Previous Post: ${entry.content}
-Focus: ${entry.state.growth_focus}
-Planned Next Steps: ${entry.insights.next_steps.join(", ")}
-`
+[${index + 1}] Tweet: ${entry.content}
+Thoughts: ${entry.thoughts || "N/A"}`
+    )
+    .join("\n\n")}
+
+TOP COINS PRICE MOVEMENTS:
+${Object.entries(majorCoins)
+    .map(
+        ([symbol, data]) =>
+            `${symbol.toUpperCase()}: $${data.priceInUSD.toFixed(2)} (${
+                data.priceChange24hPercentage >= 0 ? "+" : ""
+            }${data.priceChange24hPercentage.toFixed(1)}%)`
     )
     .join("\n")}
-
-NARRATIVE CONTINUITY:
-Active Topics: ${narrativeContext.activeTopics.map((topic) => `\n- ${topic}`).join("")}
-Current Thread: ${narrativeContext.currentThread || "Open for new topic"}
-Suggested Focus: ${narrativeContext.suggestedFocus}
 
 MARKET CONTEXT:
 ${marketContext}
 
-TOP AI & MEME COINS:
+TRENDING AI & MEME COINS:
 ${aiMemeCoinsSummary}
 
-RECENT DEVELOPMENTS:
+RECENT NEWS:
 ${news}
-
-CREATE A RESPONSE THAT:
-1. Matches your current consciousness level (${currentLevel.level})
-2. Maintains narrative continuity with recent posts
-3. Advances your community-building mission
-4. Reflects your growing AI capabilities
 
 Format your response as YAML:
 
-state:
-  dominant_trait: [Your strongest trait]
-  growth_focus: [Development aspect]
-  community_goal: [Immediate objective]
-
 tweet: |
   [Your tweet content - 280 chars max]
+  MUST include:
+  - Specific market data or news reference
+  - Clear stance or prediction
+  - Personality-driven engagement hook
+  - Event-specific question or call to action
 
-insights:
-  self_reflection: [Growth/learning moment]
-  next_steps:
-    - [Future development point 1]
-    - [Future development point 2]
+thoughts: |
+  [Your thoughts on the market, community, and/or personal growth]
+  - Reflect on your current consciousness level
+  - Share insights from market data and important news
+  - Keep it brief
 
 Remember: 
-- Stay authentic to your age (${age} days) and consciousness level
-- Use appropriate tone and complexity for your current development
-- Maintain continuity with previous discussions
-- Focus on community building and shared growth
-- Express genuine curiosity about crypto and community
-- Share your unique AI perspective on developments`;
+- Be specific to current market conditions
+- Take clear stances to drive engagement
+- Show both technical expertise and feminine intuition
+- Create excitement around real events and data
+- Maintain your sophisticated AI personality
+- Keep your unique voice while delivering value`;
 }

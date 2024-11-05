@@ -9,16 +9,8 @@ export const memory = async () => {
         const tweet: TweetRecord = {
             id: 1,
             content: "🚀 Incredible milestone: 10,000 community members strong! Your belief...",
-            state: {
-                dominant_trait: "strategic thinking",
-                growth_focus: "community expansion",
-                community_goal: "launch preparation",
-            },
-            insights: {
-                self_reflection: "Community growth validates our approach",
-                next_steps: ["Announce presale details", "Launch governance structure"],
-            },
-            raw_response: ``,
+            thoughts:
+                "Community growth validates our approach. Next steps: Announce presale details, Launch governance structure",
             posted: false,
             created_at: new Date().toISOString(),
         };

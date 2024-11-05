@@ -90,21 +90,9 @@ export interface AIResponse {
 
 // Tweet AI response types
 
-export interface TweetState {
-    dominant_trait: string;
-    growth_focus: string;
-    community_goal: string;
-}
-
-export interface TweetInsights {
-    self_reflection: string;
-    next_steps: string[];
-}
-
 export interface TweetResponse {
-    state: TweetState;
     tweet: string;
-    insights: TweetInsights;
+    thoughts: string;
 }
 
 // Tweet data store types
@@ -113,9 +101,7 @@ export interface TweetRecord {
     id: number;
     created_at: string;
     content: string;
-    raw_response: string;
-    state: TweetState;
-    insights: TweetInsights;
+    thoughts: string;
     posted: boolean;
     twitter_post_id?: string;
     engagement_stats?: {
@@ -160,3 +146,31 @@ export interface MemoryEvaluationResponse {
         };
     };
 }
+
+// Artwork types
+
+export type MarketMood = "Bullish" | "Bearish" | "Transition" | "Prophetic";
+
+export interface ArtworkBase {
+    title: string;
+    creator: string;
+    description: string;
+    marketMood: MarketMood;
+    tags: string[];
+    likes: number;
+}
+
+export interface ArtworkCreate extends ArtworkBase {
+    b64_json: string; // Base64 encoded image data
+}
+
+export interface Artwork extends ArtworkBase {
+    id: number;
+    imageUrl: string;
+    timestamp: string;
+    storageKey: string; // Key used to store in Supabase storage
+}
+
+export type ArtworkWithStats = Artwork & {
+    likedByUser: boolean;
+};

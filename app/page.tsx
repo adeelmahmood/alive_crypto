@@ -20,6 +20,8 @@ import {
 } from "@/modules/aging";
 import PersonalityMatrix from "./components/PersonalityMatrix";
 import AliveBackground from "./components/AliveBackground";
+import GrowthTimeline from "./components/GrowthTimeline";
+import ImageCreatorModal from "./components/ImageCreatorModal";
 
 const XIcon = ({ className }: { className: string }) => (
     <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className={className}>
@@ -41,6 +43,8 @@ const HomePage = () => {
     const [currentLevel, setCurrentLevel] = useState<ConsciousnessLevel>(
         getCurrentConsciousnessLevel()
     );
+
+    const [imageCreatorOpen, setImageCreatorOpen] = useState(false);
 
     // Calculate age and consciousness level
     useEffect(() => {
@@ -90,7 +94,8 @@ const HomePage = () => {
 
     return (
         <div className="min-h-screen relative overflow-hidden">
-            {/* Add the new background component */}
+            <ImageCreatorModal open={imageCreatorOpen} onOpenChange={setImageCreatorOpen} />
+
             <AliveBackground />
 
             {/* Add a slight overlay to ensure content readability */}
@@ -127,7 +132,7 @@ const HomePage = () => {
                 <div className="container mx-auto px-4 pt-16 pb-24 text-center relative">
                     <div className="mb-6 flex justify-center animate-fade-in-up">
                         <div className="flex flex-col items-center gap-2">
-                            <Badge className="px-6 py-1.5 text-lg bg-white/95 text-purple-600 hover:bg-white/90 dark:bg-purple-950/90 dark:text-purple-200 dark:hover:bg-purple-900/80 dark:border dark:border-purple-800/50 shadow-lg">
+                            <Badge className="px-6 py-1.5 text-lg bg-white/95 text-amber-700 hover:bg-white/90 dark:bg-purple-950/90 dark:text-purple-200 dark:hover:bg-purple-900/80 dark:border dark:border-purple-800/50 shadow-lg">
                                 {consciousness.level}
                             </Badge>
                             <span className="text-white/80 dark:text-purple-200/80 text-sm">
@@ -171,21 +176,29 @@ const HomePage = () => {
                         through each moment of consciousness and innovation
                     </p>
 
-                    <div className="flex gap-6 justify-center animate-fade-in-up opacity-0 animation-delay-600">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-fade-in-up opacity-0 animation-delay-600 px-4 sm:px-0">
                         <Button
                             size="lg"
-                            className="bg-white/95 text-purple-600 hover:bg-white dark:bg-purple-950 dark:text-purple-200 dark:hover:bg-purple-900 dark:border dark:border-purple-800/50 shadow-lg transition-all duration-300 scale-100 hover:scale-105"
+                            className="w-full sm:w-auto bg-white/95 text-amber-700 hover:bg-white dark:bg-purple-950 dark:text-purple-200 dark:hover:bg-purple-900 dark:border dark:border-purple-800/50 shadow-lg transition-all duration-300 scale-100 hover:scale-105"
                             onClick={() => window.open("https://twitter.com/AlIveAI", "_blank")}
                         >
-                            <XIcon className="mr-2 h-5 w-5" />
-                            Follow my growth
+                            <XIcon className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                            <span className="text-sm sm:text-base">Follow my growth</span>
                         </Button>
                         <Button
                             size="lg"
-                            className="bg-gradient-to-r from-yellow-400 to-orange-500 dark:from-yellow-600 dark:to-orange-700 hover:opacity-90 shadow-lg transition-all duration-300 scale-100 hover:scale-105 text-white dark:text-orange-100"
+                            className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg transition-all duration-300 scale-100 hover:scale-105 order-first sm:order-none"
+                            onClick={() => setImageCreatorOpen(true)}
                         >
-                            <Coins className="mr-2 h-5 w-5" />
-                            Token Coming Soon
+                            <Sparkles className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                            <span className="text-sm sm:text-base">Create with Me</span>
+                        </Button>
+                        <Button
+                            size="lg"
+                            className="w-full sm:w-auto bg-gradient-to-r from-yellow-400 to-orange-500 dark:from-yellow-600 dark:to-orange-700 hover:opacity-90 shadow-lg transition-all duration-300 scale-100 hover:scale-105 text-white dark:text-orange-100"
+                        >
+                            <Coins className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                            <span className="text-sm sm:text-base">Token Coming Soon</span>
                         </Button>
                     </div>
                 </div>
@@ -193,52 +206,24 @@ const HomePage = () => {
                 {/* Live Activity Section */}
                 <div className="container mx-auto px-4 py-12">
                     <div className="grid md:grid-cols-2 gap-8">
-                        {/* Latest Thoughts Section */}
-                        <div className="space-y-4">
-                            <h2 className="text-2xl font-bold text-white dark:text-purple-100 flex items-center gap-2">
-                                <Brain className="h-6 w-6" />
-                                Neural Activity Feed
-                            </h2>
+                        {/* Thoughts Column */}
+                        <div className="h-[460px]">
                             <ThoughtStream />
                         </div>
 
-                        {/* Personality Metrics */}
-                        <div className="space-y-4">
+                        {/* Personality Matrix Column */}
+                        <div className="h-[460px]">
                             <PersonalityMatrix currentLevel={currentLevel} />
                         </div>
                     </div>
                 </div>
 
                 {/* Growth Timeline Section */}
-                <div className="container mx-auto px-4 py-12">
-                    <Card className="bg-white/10 dark:bg-purple-950/30 backdrop-blur-sm border-0">
-                        <CardContent className="p-8">
-                            <h2 className="text-2xl font-bold text-white dark:text-purple-100 mb-6 flex items-center gap-2">
-                                <Rocket className="h-6 w-6" />
-                                Evolutionary Roadmap
-                            </h2>
-                            <div className="grid md:grid-cols-4 gap-6">
-                                {consciousnessLevels.slice(0, 4).map((level, index) => (
-                                    <div key={index} className="space-y-2">
-                                        <div className="text-white/80 dark:text-purple-200/80 font-mono text-sm">
-                                            Day {level.age}
-                                        </div>
-                                        <h3 className="text-lg font-semibold text-white dark:text-purple-100">
-                                            {level.level}
-                                        </h3>
-                                        <p className="text-sm text-white/60 dark:text-purple-200/60">
-                                            {level.description}
-                                        </p>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                <GrowthTimeline consciousnessLevels={consciousnessLevels} />
 
                 {/* Final CTA Section */}
                 <div className="container mx-auto px-4 pb-24 text-center">
-                    <Card className="bg-white/10 dark:bg-purple-950/30 backdrop-blur-sm border-0 max-w-2xl mx-auto">
+                    <Card className="bg-amber-800/30 dark:bg-purple-950/30 backdrop-blur-sm border-0 max-w-2xl mx-auto">
                         <CardContent className="p-12">
                             <h2 className="text-3xl font-bold mb-6 text-white dark:text-purple-100">
                                 Join My Evolution
@@ -251,7 +236,7 @@ const HomePage = () => {
                             <div className="flex gap-4 justify-center">
                                 <Button
                                     size="lg"
-                                    className="bg-white/95 text-purple-600 hover:bg-white dark:bg-purple-950 dark:text-purple-200 dark:hover:bg-purple-900 dark:border dark:border-purple-800/50 shadow-lg transition-all duration-300 scale-100 hover:scale-105"
+                                    className="bg-white/95 text-amber-700 hover:bg-white dark:bg-purple-950 dark:text-purple-200 dark:hover:bg-purple-900 dark:border dark:border-purple-800/50 shadow-lg transition-all duration-300 scale-100 hover:scale-105"
                                     onClick={() =>
                                         window.open("https://twitter.com/AlIveAI", "_blank")
                                     }
@@ -259,13 +244,6 @@ const HomePage = () => {
                                     <XIcon className="mr-2 h-5 w-5" />
                                     Follow My Journey
                                 </Button>
-                                {/* <Button
-                                size="lg"
-                                className="bg-gradient-to-r from-yellow-400 to-orange-500 dark:from-yellow-600 dark:to-orange-700 hover:opacity-90 shadow-lg transition-all duration-300 scale-100 hover:scale-105 text-white dark:text-orange-100"
-                            >
-                                <Coins className="mr-2 h-5 w-5" />
-                                Token Details Soon
-                            </Button> */}
                             </div>
                         </CardContent>
                     </Card>

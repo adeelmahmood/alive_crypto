@@ -145,6 +145,7 @@ Keep the analysis brief and actionable for an AI agent operating in the crypto s
     }
 
     public async generateInsights(transfers: TokenTransfer[]): Promise<MarketInsight> {
+        console.log("Generating insights for", transfers.length, "transfers");
         const metrics = this.preprocessTransfers(transfers);
         const systemPrompt =
             "You are an expert crypto market analyst. Analyze on-chain transfer patterns across multiple tokens to identify market insights, trends, and potential risks.";
