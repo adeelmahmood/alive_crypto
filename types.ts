@@ -154,15 +154,12 @@ export interface MemoryEvaluationResponse {
 
 // Artwork types
 
-export type MarketMood = "Bullish" | "Bearish" | "Transition" | "Prophetic";
-
 export interface ArtworkBase {
     title: string;
     creator: string;
     description: string;
-    marketMood: MarketMood;
+    marketMood: string;
     tags: string[];
-    likes: number;
 }
 
 export interface ArtworkCreate extends ArtworkBase {
@@ -174,8 +171,32 @@ export interface Artwork extends ArtworkBase {
     imageUrl: string;
     timestamp: string;
     storageKey: string; // Key used to store in Supabase storage
+    likes: number;
 }
 
-export type ArtworkWithStats = Artwork & {
-    likedByUser: boolean;
-};
+// Visitor types
+
+export interface ServerFingerprint {
+    userAgent: string;
+    acceptLanguage: string;
+    ipAddress: string;
+    headers: Record<string, string>;
+}
+
+export interface VisitorRecord {
+    id: string;
+    client_fingerprint: string;
+    server_fingerprint: string;
+    ip_address: string;
+    generation_count: number;
+    last_generation_time: string;
+    last_reset_date: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ValidationResult {
+    isAllowed: boolean;
+    reason?: string;
+    remainingGenerations?: number;
+}

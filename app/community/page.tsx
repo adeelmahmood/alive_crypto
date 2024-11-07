@@ -7,11 +7,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Search, TrendingUp, Heart, Share2, Clock } from "lucide-react";
+import { Sparkles, Search, TrendingUp, Heart, Share2, Clock, Home } from "lucide-react";
 import ImageCreatorModal from "../components/ImageCreatorModal";
 
 import AliveBackgroundVibrant from "../components/AliveBackgroundVibrant";
 import { useArtworks } from "../hooks/useArtworks";
+import { useRouter } from "next/navigation";
 
 interface ArtworkType {
     imageUrl: string;
@@ -25,13 +26,15 @@ interface ArtworkType {
 }
 
 const CommunityArtPage = () => {
+    const router = useRouter();
+
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedFilter, setSelectedFilter] = useState("all");
     const [imageCreatorOpen, setImageCreatorOpen] = useState(false);
     const [selectedArtwork, setSelectedArtwork] = useState<ArtworkType | null>(null);
 
     // Use the custom hook to fetch artworks
-    const { artworks, loading, error } = useArtworks({
+    const { artworks, loading, error, fetchArtworks } = useArtworks({
         searchQuery,
         marketMood:
             selectedFilter === "bullish"
@@ -63,20 +66,21 @@ const CommunityArtPage = () => {
         }
     });
 
-    if (error) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-white text-center">
-                    <h2 className="text-2xl font-bold mb-4">Error Loading Artworks</h2>
-                    <p>{error}</p>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className="min-h-screen relative">
             <AliveBackgroundVibrant />
+
+            {/* Floating Home Icon */}
+            <motion.div
+                className="fixed bottom-8 right-8 z-50 cursor-pointer p-3 bg-blue-600 rounded-full shadow-lg"
+                whileHover={{ scale: 1.1, rotate: 20 }}
+                onClick={() => router.push("/")}
+                title="Return to Home"
+            >
+                <Home className="h-6 w-6 text-white" />
+            </motion.div>
+
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent z-0" />
 
             {/* Overlay gradient */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent z-0" />
@@ -93,14 +97,16 @@ const CommunityArtPage = () => {
                         community's journey.
                     </p>
 
-                    <Button
-                        onClick={() => setImageCreatorOpen(true)}
-                        className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg transition-all duration-300 scale-100 hover:scale-105"
-                        size="lg"
-                    >
-                        <Sparkles className="mr-2 h-5 w-5" />
-                        Create New Art
-                    </Button>
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-fade-in-up opacity-0 animation-delay-600 px-4 sm:px-0">
+                        <Button
+                            onClick={() => setImageCreatorOpen(true)}
+                            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg transition-all duration-300 scale-100 hover:scale-105"
+                            size="lg"
+                        >
+                            <Sparkles className="mr-2 h-5 w-5" />
+                            Create New Art
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Search and Filter Section */}
@@ -134,6 +140,11 @@ const CommunityArtPage = () => {
                         ))}
                     </div>
                 </div>
+
+                {/* error */}
+                {error && (
+                    <div className="bg-red-500/20 text-white p-4 rounded-lg mb-8">{error}</div>
+                )}
 
                 {/* Gallery Grid with Loading State */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -204,11 +215,15 @@ const CommunityArtPage = () => {
             </div>
 
             {/* Image Creator Modal */}
-            <ImageCreatorModal open={imageCreatorOpen} onOpenChange={setImageCreatorOpen} />
+            <ImageCreatorModal
+                open={imageCreatorOpen}
+                onOpenChange={setImageCreatorOpen}
+                onArtworkCreated={() => fetchArtworks()}
+            />
 
             {/* Artwork Detail Modal */}
             <Dialog open={!!selectedArtwork} onOpenChange={() => setSelectedArtwork(null)}>
-                <DialogContent className="max-w-3xl mx-auto bg-gradient-to-b from-purple-950/90 via-pink-950/90 to-orange-950/90 text-white backdrop-blur-sm max-h-screen overflow-y-auto">
+                <DialogContent className="w-full max-w-3xl mx-auto bg-gradient-to-b from-purple-950/90 via-pink-950/90 to-orange-950/90 text-white backdrop-blur-sm max-h-[90vh] overflow-y-auto">
                     {selectedArtwork && (
                         <>
                             <DialogHeader>
@@ -218,17 +233,17 @@ const CommunityArtPage = () => {
                             </DialogHeader>
 
                             <div className="mt-4 flex flex-col items-center">
-                                {/* Define a responsive container with position relative */}
+                                {/* Responsive container for image */}
                                 <div
-                                    className="relative w-full max-h-[70vh] rounded-xl overflow-hidden mb-4"
-                                    style={{ height: "70vh" }}
+                                    className="relative w-full rounded-xl overflow-hidden mb-4"
+                                    style={{ height: "50vh" }} // Adjusted for smaller screens
                                 >
                                     <Image
                                         src={selectedArtwork.imageUrl}
                                         alt={selectedArtwork.title}
-                                        className="object-contain"
+                                        className="object-contain" // Use object-cover for full containment
                                         fill
-                                        sizes="(max-width: 1024px) 90vw, 1024px"
+                                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1024px"
                                         priority
                                     />
                                 </div>

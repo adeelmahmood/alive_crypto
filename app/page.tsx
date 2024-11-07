@@ -21,7 +21,7 @@ import {
 import PersonalityMatrix from "./components/PersonalityMatrix";
 import AliveBackground from "./components/AliveBackground";
 import GrowthTimeline from "./components/GrowthTimeline";
-import ImageCreatorModal from "./components/ImageCreatorModal";
+import Link from "next/link";
 
 const XIcon = ({ className }: { className: string }) => (
     <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className={className}>
@@ -94,8 +94,6 @@ const HomePage = () => {
 
     return (
         <div className="min-h-screen relative overflow-hidden">
-            <ImageCreatorModal open={imageCreatorOpen} onOpenChange={setImageCreatorOpen} />
-
             <AliveBackground />
 
             {/* Add a slight overlay to ensure content readability */}
@@ -185,14 +183,16 @@ const HomePage = () => {
                             <XIcon className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                             <span className="text-sm sm:text-base">Follow my growth</span>
                         </Button>
-                        <Button
-                            size="lg"
-                            className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg transition-all duration-300 scale-100 hover:scale-105 order-first sm:order-none"
-                            onClick={() => setImageCreatorOpen(true)}
-                        >
-                            <Sparkles className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                            <span className="text-sm sm:text-base">Create with Me</span>
-                        </Button>
+
+                        <Link href="/community" className="w-full sm:w-auto">
+                            <Button
+                                size="lg"
+                                className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg transition-all duration-300 scale-100 hover:scale-105 order-first sm:order-none"
+                            >
+                                <Sparkles className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                                <span className="text-sm sm:text-base">Create with Me</span>
+                            </Button>
+                        </Link>
                         <Button
                             size="lg"
                             className="w-full sm:w-auto bg-gradient-to-r from-yellow-400 to-orange-500 dark:from-yellow-600 dark:to-orange-700 hover:opacity-90 shadow-lg transition-all duration-300 scale-100 hover:scale-105 text-white dark:text-orange-100"
