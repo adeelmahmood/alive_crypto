@@ -3,7 +3,6 @@ import { Rocket } from "lucide-react";
 
 const TimelineCard = ({
     level,
-    index,
     isLast,
 }: {
     level: { age: number; level: string; description: string };

@@ -94,7 +94,7 @@ const CommunityArtPage = () => {
                     </h1>
                     <p className="text-lg text-white/80 max-w-2xl mx-auto mb-8">
                         Where creativity meets market sentiment. Every piece tells a story of our
-                        community's journey.
+                        community&apos;s journey.
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-fade-in-up opacity-0 animation-delay-600 px-4 sm:px-0">

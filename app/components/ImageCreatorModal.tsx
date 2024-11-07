@@ -7,11 +7,8 @@ import {
     Camera,
     Loader2,
     Share2,
-    Wand2,
     TrendingUp,
-    Newspaper,
     LightbulbIcon,
-    XCircle,
     AlertTriangle,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -318,11 +315,7 @@ const ImageCreatorModal: React.FC<ImageCreatorModalProps> = ({
                     {/* Submit Button - Simplified */}
                     <Button
                         type="submit"
-                        disabled={
-                            status.isSubmitting ||
-                            formState.prompt.length < MIN_PROMPT_LENGTH ||
-                            !formState.creator.trim()
-                        }
+                        disabled={isSubmitDisabled}
                         className={`
                             w-full py-6 text-white
                             ${

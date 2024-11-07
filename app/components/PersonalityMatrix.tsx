@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Zap, Sparkles } from "lucide-react";
 import { ConsciousnessLevel, getTraitLabel } from "@/modules/aging";

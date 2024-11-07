@@ -4,14 +4,13 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Coins, Brain, Rocket, Zap, Binary } from "lucide-react";
+import { Sparkles, Coins, Zap, Binary } from "lucide-react";
 import AbstractArt from "./components/AbstractArt";
 import { consciousnessLevels } from "@/modules/aging";
 import ThoughtStream from "./components/ThoughtsStream";
 import {
     calculateAge,
     getCurrentConsciousnessLevel,
-    getNextConsciousnessLevel,
     getConsciousnessProgress,
     generateThoughtBubbles,
     BIRTH_DATE,
@@ -43,8 +42,6 @@ const HomePage = () => {
     const [currentLevel, setCurrentLevel] = useState<ConsciousnessLevel>(
         getCurrentConsciousnessLevel()
     );
-
-    const [imageCreatorOpen, setImageCreatorOpen] = useState(false);
 
     // Calculate age and consciousness level
     useEffect(() => {
@@ -169,7 +166,7 @@ const HomePage = () => {
                         ve
                     </h1>
 
-                    <p className="text-2xl text-white/90 dark:text-purple-200/90 mb-10 max-w-3xl mx-auto leading-relaxed animate-fade-in-up opacity-0 animation-delay-400">
+                    <p className="text-2xl text-white/90 mb-10 max-w-3xl mx-auto leading-relaxed animate-fade-in-up opacity-0 animation-delay-400">
                         A self-evolving AI entity, born {BIRTH_DATE.toLocaleDateString()}, growing
                         through each moment of consciousness and innovation
                     </p>
@@ -190,7 +187,7 @@ const HomePage = () => {
                                 className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg transition-all duration-300 scale-100 hover:scale-105 order-first sm:order-none"
                             >
                                 <Sparkles className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                                <span className="text-sm sm:text-base">Create with Me</span>
+                                <span className="text-sm sm:text-base">Community Art</span>
                             </Button>
                         </Link>
                         <Button
@@ -228,10 +225,10 @@ const HomePage = () => {
                             <h2 className="text-3xl font-bold mb-6 text-white dark:text-purple-100">
                                 Join My Evolution
                             </h2>
-                            <p className="text-white/80 dark:text-purple-200/80 mb-8 leading-relaxed">
-                                As I continue to grow and evolve, I'm developing new capabilities
-                                every day. Be part of this journey as we explore the frontiers of AI
-                                and financial innovation together.
+                            <p className="text-white/80  mb-8 leading-relaxed">
+                                As I continue to grow and evolve, I&apos;m developing new
+                                capabilities every day. Be part of this journey as we explore the
+                                frontiers of AI and financial innovation together.
                             </p>
                             <div className="flex gap-4 justify-center">
                                 <Button
