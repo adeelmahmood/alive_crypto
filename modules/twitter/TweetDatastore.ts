@@ -1,6 +1,5 @@
 import { TweetRecord, TweetResponse } from "@/types";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import yaml from "js-yaml";
 
 export class TweetDatastore {
     private static instance: TweetDatastore;
@@ -18,28 +17,18 @@ export class TweetDatastore {
     }
 
     /**
-     * Parse YAML response into structured data
-     */
-    private parseResponse(rawResponse: string): TweetResponse {
-        try {
-            const parsed = yaml.load(rawResponse) as TweetResponse;
-            return parsed;
-        } catch (error: any) {
-            throw new Error(`Failed to parse response: ${error.message}`);
-        }
-    }
-
-    /**
      * Save a new tweet to the database
      */
     async saveTweet(rawResponse: string): Promise<TweetRecord> {
-        const parsed = this.parseResponse(rawResponse);
+        // parse <tweet>...</tweet> and <thoughts>...</thoughts> from YAML
+        const tweet = rawResponse.match(/<tweet>([\s\S]*?)<\/tweet>/)?.[1];
+        const thoughts = rawResponse.match(/<thoughts>([\s\S]*?)<\/thoughts>/)?.[1];
 
         const { data, error } = await this.supabase
             .from("tweets")
             .insert({
-                content: parsed.tweet,
-                thoughts: parsed.thoughts,
+                content: tweet?.trim(),
+                thoughts: thoughts?.trim(),
                 posted: false,
             })
             .select()
