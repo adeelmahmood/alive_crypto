@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(request: NextRequest) {
     try {
         const searchParams = request.nextUrl.searchParams;
-        const limit = parseInt(searchParams.get("limit") || "20");
+        const limit = parseInt(searchParams.get("limit") || "24");
         const offset = parseInt(searchParams.get("offset") || "0");
         const marketMood = searchParams.get("marketMood") || undefined;
         const searchQuery = searchParams.get("search") || undefined;
