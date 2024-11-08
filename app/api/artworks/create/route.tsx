@@ -1,25 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ArtworkPromptCurator } from "@/modules/artwork/ArtworkPromptCurator";
 import { ArtworkGenerator } from "@/modules/artwork/ArtworkGenerator";
-import { VisitorValidator } from "@/modules/visitors/VisitorValidator";
-import { ServerFingerprint } from "@/types";
-import { getClientIP } from "./ip";
-
-const generateServerFingerprint = (request: NextRequest): ServerFingerprint => {
-    const headers = Object.fromEntries(request.headers.entries());
-
-    return {
-        userAgent: headers["user-agent"] || "",
-        acceptLanguage: headers["accept-language"] || "",
-        ipAddress: getClientIP(request),
-        headers: {
-            accept: headers["accept"] || "",
-            "accept-encoding": headers["accept-encoding"] || "",
-            "sec-ch-ua": headers["sec-ch-ua"] || "",
-            "sec-ch-ua-platform": headers["sec-ch-ua-platform"] || "",
-        },
-    };
-};
+import { generateServerFingerprint } from "@/app/utils";
+import { VisitorTracker } from "@/modules/visitors/VisitorTracker";
 
 export async function POST(req: NextRequest) {
     try {
@@ -38,11 +21,10 @@ export async function POST(req: NextRequest) {
 
         // Generate server fingerprint
         const serverFingerprint = generateServerFingerprint(req);
-        console.log("ip address", serverFingerprint.ipAddress);
 
         // Validate visitor
-        const visitorValidation = new VisitorValidator(clientFingerprint, serverFingerprint);
-        const validationResult = await visitorValidation.validateRequest();
+        const visitorTracker = new VisitorTracker(clientFingerprint, serverFingerprint);
+        const validationResult = await visitorTracker.validateRequest();
 
         if (!validationResult.isAllowed) {
             return NextResponse.json(
@@ -65,7 +47,7 @@ export async function POST(req: NextRequest) {
         const finalArtwork = await generator.generateAndStore(artworkPrompt, creator);
 
         // Record the generation
-        await visitorValidation.recordGeneration();
+        await visitorTracker.recordGeneration();
 
         // Return the result
         return NextResponse.json({

@@ -1,3 +1,4 @@
+import { ServerFingerprint } from "@/types";
 import { NextRequest } from "next/server";
 
 export const getClientIP = (request: NextRequest): string => {
@@ -27,4 +28,20 @@ export const getClientIP = (request: NextRequest): string => {
     }
 
     return "0.0.0.0"; // fallback if no IP can be determined
+};
+
+export const generateServerFingerprint = (request: NextRequest): ServerFingerprint => {
+    const headers = Object.fromEntries(request.headers.entries());
+
+    return {
+        userAgent: headers["user-agent"] || "",
+        acceptLanguage: headers["accept-language"] || "",
+        ipAddress: getClientIP(request),
+        headers: {
+            accept: headers["accept"] || "",
+            "accept-encoding": headers["accept-encoding"] || "",
+            "sec-ch-ua": headers["sec-ch-ua"] || "",
+            "sec-ch-ua-platform": headers["sec-ch-ua-platform"] || "",
+        },
+    };
 };

@@ -74,6 +74,7 @@ export class ArtworkDatastore {
     }
 
     public async getArtworks(
+        visitorId: string,
         options: {
             limit?: number;
             offset?: number;
@@ -82,7 +83,18 @@ export class ArtworkDatastore {
         } = {}
     ): Promise<{ artworks: Artwork[]; total: number }> {
         try {
-            let query = this.supabase.from("artworks").select("*", { count: "exact" });
+            // Build base query with likes count and visitor's like status
+            let query = this.supabase
+                .from("artworks")
+                .select(
+                    `
+            *,
+            total_likes:artwork_likes(count),
+            visitor_likes:artwork_likes!left(visitor_id)
+        `,
+                    { count: "exact" }
+                )
+                .eq("artwork_likes.visitor_id", visitorId);
 
             // Apply filters
             if (options.marketMood) {
@@ -113,7 +125,10 @@ export class ArtworkDatastore {
             }
 
             return {
-                artworks: data.map(this.transformDatabaseArtwork),
+                artworks: data.map((artwork) => ({
+                    ...this.transformDatabaseArtwork(artwork),
+                    isLiked: artwork.is_liked?.length > 0,
+                })),
                 total: count || 0,
             };
         } catch (error) {
@@ -122,23 +137,79 @@ export class ArtworkDatastore {
         }
     }
 
-    public async incrementLikes(artworkId: number): Promise<number> {
-        const { data, error } = await this.supabase.rpc("increment_artwork_likes", {
-            artwork_id: artworkId,
-        });
+    public async getVisitorLikedArtworkIds(visitorId: string): Promise<number[]> {
+        const { data, error } = await this.supabase
+            .from("artwork_likes")
+            .select("artwork_id")
+            .eq("visitor_id", visitorId);
 
         if (error) {
-            throw new Error(`Error incrementing likes: ${error.message}`);
+            throw new Error(`Failed to get liked artworks: ${error.message}`);
         }
 
-        // Get updated likes count
-        const { data: artwork } = await this.supabase
-            .from("artworks")
-            .select("likes")
-            .eq("id", artworkId)
+        return data.map((like) => like.artwork_id);
+    }
+
+    public async toggleLike(artworkId: number, visitorId: string): Promise<number> {
+        try {
+            // Check if already liked
+            const { data: existingLike } = await this.supabase
+                .from("artwork_likes")
+                .select("*")
+                .eq("artwork_id", artworkId)
+                .eq("visitor_id", visitorId)
+                .single();
+
+            if (existingLike) {
+                // Unlike: Remove like and decrement count
+                const { error: unlikeError } = await this.supabase
+                    .from("artwork_likes")
+                    .delete()
+                    .eq("artwork_id", artworkId)
+                    .eq("visitor_id", visitorId);
+
+                if (unlikeError) {
+                    throw new Error(`Failed to remove like: ${unlikeError.message}`);
+                }
+
+                await this.supabase.rpc("decrement_artwork_likes", { artwork_id: artworkId });
+            } else {
+                // Like: Add like and increment count
+                const { error: likeError } = await this.supabase.from("artwork_likes").insert({
+                    artwork_id: artworkId,
+                    visitor_id: visitorId,
+                });
+
+                if (likeError) {
+                    throw new Error(`Failed to add like: ${likeError.message}`);
+                }
+
+                await this.supabase.rpc("increment_artwork_likes", { artwork_id: artworkId });
+            }
+
+            // Get updated likes count
+            const { data: artwork } = await this.supabase
+                .from("artworks")
+                .select("likes")
+                .eq("id", artworkId)
+                .single();
+
+            return artwork?.likes || 0;
+        } catch (error) {
+            console.error("Error toggling like:", error);
+            throw error;
+        }
+    }
+
+    public async isLikedByVisitor(artworkId: number, visitorId: string): Promise<boolean> {
+        const { data } = await this.supabase
+            .from("artwork_likes")
+            .select("*")
+            .eq("artwork_id", artworkId)
+            .eq("visitor_id", visitorId)
             .single();
 
-        return artwork?.likes || 0;
+        return !!data;
     }
 
     private transformDatabaseArtwork(dbArtwork: any): Artwork {

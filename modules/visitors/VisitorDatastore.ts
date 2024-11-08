@@ -98,43 +98,58 @@ export class VisitorDatastore {
     public async canGenerate(
         visitor: VisitorRecord
     ): Promise<{ allowed: boolean; reason?: string }> {
-        const today = new Date().toISOString().split("T")[0];
+        try {
+            const today = new Date().toISOString().split("T")[0];
 
-        // Reset count if it's a new day
-        if (visitor.last_reset_date !== today) {
-            return { allowed: true };
-        }
+            // Reset count if it's a new day
+            if (visitor.last_reset_date !== today) {
+                visitor.generation_count = 0;
+                visitor.last_reset_date = today;
 
-        // Check daily limit
-        if (visitor.generation_count >= ARTWORK_GENERATION_DAILY_LIMIT) {
-            return {
-                allowed: false,
-                reason: "Daily generation limit reached",
-            };
-        }
+                await this.upsertVisitor(visitor);
+            }
 
-        // Check global daily limit
-        const globalTotalToday = await this.getTodayTotalGenerations();
-        if (globalTotalToday >= ARTWORK_GENERATION_GLOBAL_DAILY_LIMIT) {
-            return {
-                allowed: false,
-                reason: "Global daily generation limit reached. Please try again tomorrow.",
-            };
-        }
-
-        // Check minimum interval between generations
-        if (visitor.last_generation_time) {
-            const lastGeneration = new Date(visitor.last_generation_time).getTime();
-            const now = Date.now();
-
-            if (now - lastGeneration < ARTWORK_GENERATION_MIN_INTERVAL_MS) {
+            // Check daily limit
+            if (visitor.generation_count >= ARTWORK_GENERATION_DAILY_LIMIT) {
                 return {
                     allowed: false,
-                    reason: "Please wait before generating another image",
+                    reason: "Daily generation limit reached",
                 };
             }
-        }
 
-        return { allowed: true };
+            // Check global daily limit
+            const globalTotalToday = await this.getTodayTotalGenerations();
+            if (globalTotalToday >= ARTWORK_GENERATION_GLOBAL_DAILY_LIMIT) {
+                return {
+                    allowed: false,
+                    reason: "Global daily generation limit reached. Please try again tomorrow.",
+                };
+            }
+
+            // Skip interval check for first-time users
+            if (visitor.generation_count > 0) {
+                // Check minimum interval between generations
+                const lastGeneration = new Date(visitor.last_generation_time!).getTime();
+                const now = Date.now();
+                const timeRemaining = ARTWORK_GENERATION_MIN_INTERVAL_MS - (now - lastGeneration);
+
+                if (timeRemaining > 0) {
+                    return {
+                        allowed: false,
+                        reason: `Please wait ${Math.ceil(
+                            timeRemaining / 1000
+                        )} seconds before generating another image`,
+                    };
+                }
+            }
+
+            return { allowed: true };
+        } catch (error) {
+            console.error("Error in canGenerate:", error);
+            return {
+                allowed: false,
+                reason: "An error occurred while checking generation permissions. Please try again.",
+            };
+        }
     }
 }

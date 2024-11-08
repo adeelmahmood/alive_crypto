@@ -3,10 +3,9 @@ import { VisitorDatastore } from "./VisitorDatastore";
 import { ServerFingerprint, ValidationResult } from "@/types";
 import { ARTWORK_GENERATION_DAILY_LIMIT } from "@/constants";
 
-export class VisitorValidator {
+export class VisitorTracker {
     private clientFingerprint: string;
     private serverFingerprint: ServerFingerprint;
-
     private datastore: VisitorDatastore;
 
     constructor(clientFingerprint: string, serverFingerprint: ServerFingerprint) {
@@ -27,31 +26,41 @@ export class VisitorValidator {
             .digest("hex");
     }
 
+    public async ensureVisitor(): Promise<string> {
+        const serverFingerprintHash = this.hashServerFingerprint(this.serverFingerprint);
+        const compositeId = this.generateCompositeId(serverFingerprintHash, this.clientFingerprint);
+
+        const visitor = await this.datastore.getVisitor(compositeId);
+
+        if (!visitor) {
+            const newVisitor = {
+                id: compositeId,
+                client_fingerprint: this.clientFingerprint,
+                server_fingerprint: serverFingerprintHash,
+                ip_address: this.serverFingerprint.ipAddress,
+                generation_count: 0,
+                last_generation_time: new Date().toISOString(),
+                last_reset_date: new Date().toISOString().split("T")[0],
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+            };
+            await this.datastore.upsertVisitor(newVisitor);
+        }
+
+        return compositeId;
+    }
+
     public async validateRequest(): Promise<ValidationResult> {
         try {
-            // Generate server fingerprint
             const serverFingerprintHash = this.hashServerFingerprint(this.serverFingerprint);
-            const compositeId = this.generateCompositeId(
-                serverFingerprintHash,
-                this.clientFingerprint
-            );
+            const compositeId = await this.ensureVisitor();
 
-            // Get or create visitor record
-            let visitor = await this.datastore.getVisitor(compositeId);
-
+            const visitor = await this.datastore.getVisitor(compositeId);
             if (!visitor) {
-                visitor = {
-                    id: compositeId,
-                    client_fingerprint: this.clientFingerprint,
-                    server_fingerprint: serverFingerprintHash,
-                    ip_address: this.serverFingerprint.ipAddress,
-                    generation_count: 0,
-                    last_generation_time: new Date().toISOString(),
-                    last_reset_date: new Date().toISOString().split("T")[0],
-                    created_at: new Date().toISOString(),
-                    updated_at: new Date().toISOString(),
+                return {
+                    isAllowed: false,
+                    reason: "Visitor not found",
                 };
-                await this.datastore.upsertVisitor(visitor);
             }
 
             // Validate existing visitor
@@ -82,9 +91,12 @@ export class VisitorValidator {
     }
 
     public async recordGeneration(): Promise<void> {
-        const serverFingerprintHash = this.hashServerFingerprint(this.serverFingerprint);
-        const compositeId = this.generateCompositeId(serverFingerprintHash, this.clientFingerprint);
-
+        const compositeId = await this.ensureVisitor();
         await this.datastore.incrementGenerationCount(compositeId);
+    }
+
+    public getVisitorId(): string {
+        const serverFingerprintHash = this.hashServerFingerprint(this.serverFingerprint);
+        return this.generateCompositeId(serverFingerprintHash, this.clientFingerprint);
     }
 }

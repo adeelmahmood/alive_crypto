@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import FingerprintJS from "@fingerprintjs/fingerprintjs";
 import { Artwork } from "@/types";
 
 interface UseArtworksProps {
@@ -15,13 +16,21 @@ export function useArtworks({ searchQuery, marketMood, limit = 20 }: UseArtworks
 
     const fetchArtworks = useCallback(async () => {
         try {
+            const fp = await FingerprintJS.load();
+            const { visitorId } = await fp.get();
+
             setLoading(true);
             const params = new URLSearchParams();
             if (searchQuery) params.set("search", searchQuery);
             if (marketMood) params.set("marketMood", marketMood);
             if (limit) params.set("limit", limit.toString());
 
-            const response = await fetch(`/api/artworks?${params.toString()}`);
+            const response = await fetch(`/api/artworks?${params.toString()}`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Fingerprint": visitorId,
+                },
+            });
             if (!response.ok) throw new Error("Something went wrong while fetching artworks");
 
             const data = await response.json();

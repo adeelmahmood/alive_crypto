@@ -1,37 +1,39 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Search, TrendingUp, Heart, Share2, Clock, Home } from "lucide-react";
+import { Sparkles, Search, TrendingUp, Clock, Home, X } from "lucide-react";
 import ImageCreatorModal from "../components/ImageCreatorModal";
 
 import AliveBackgroundVibrant from "../components/AliveBackgroundVibrant";
 import { useArtworks } from "../hooks/useArtworks";
 import { useRouter } from "next/navigation";
+import { LikeButton } from "../components/LikeButton";
+import { LikesProvider, useLikes } from "../contexts/LikesContext";
 
-interface ArtworkType {
-    imageUrl: string;
-    title: string;
-    creator: string;
-    timestamp: string;
-    likes: number;
-    marketMood: string;
-    tags: string[];
-    description: string;
-}
+import FingerprintJS from "@fingerprintjs/fingerprintjs";
+import { Artwork } from "@/types";
 
 const CommunityArtPage = () => {
+    return (
+        <LikesProvider>
+            <CommunityArtContent />
+        </LikesProvider>
+    );
+};
+
+const CommunityArtContent = () => {
     const router = useRouter();
 
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedFilter, setSelectedFilter] = useState("all");
     const [imageCreatorOpen, setImageCreatorOpen] = useState(false);
-    const [selectedArtwork, setSelectedArtwork] = useState<ArtworkType | null>(null);
+    const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null);
 
     // Use the custom hook to fetch artworks
     const { artworks, loading, error, fetchArtworks } = useArtworks({
@@ -43,6 +45,28 @@ const CommunityArtPage = () => {
                 ? "Bearish"
                 : undefined,
     });
+
+    const { initializeLikes } = useLikes();
+
+    // Initialize likes on mount
+    useEffect(() => {
+        const initializeLikeStatus = async () => {
+            try {
+                const fp = await FingerprintJS.load();
+                const { visitorId } = await fp.get();
+
+                const response = await fetch(`/api/artworks/likes?visitorId=${visitorId}`);
+                if (response.ok) {
+                    const { likedArtworkIds } = await response.json();
+                    initializeLikes(likedArtworkIds);
+                }
+            } catch (error) {
+                console.error("Error initializing like status:", error);
+            }
+        };
+
+        initializeLikeStatus();
+    }, [initializeLikes]);
 
     const filterOptions = [
         { id: "all", label: "All Art" },
@@ -118,8 +142,17 @@ const CommunityArtPage = () => {
                             placeholder="Search artworks..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60 w-full"
+                            className="pl-10 pr-8 bg-white/10 border-white/20 text-white placeholder:text-white/60 w-full"
                         />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery("")}
+                                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white/80 transition-colors"
+                                aria-label="Clear search"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        )}
                     </div>
 
                     <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
@@ -201,10 +234,10 @@ const CommunityArtPage = () => {
                                                       <TrendingUp className="h-3 w-3 mr-1" />
                                                       {artwork.marketMood}
                                                   </Badge>
-                                                  <Badge className="bg-pink-500/20 text-pink-200">
-                                                      <Heart className="h-3 w-3 mr-1" />
-                                                      {artwork.likes}
-                                                  </Badge>
+                                                  <LikeButton
+                                                      artworkId={artwork.id}
+                                                      initialLikes={artwork.likes}
+                                                  />
                                               </div>
                                           </div>
                                       </div>
@@ -260,14 +293,14 @@ const CommunityArtPage = () => {
                                     </div>
 
                                     <div className="flex items-center gap-2">
-                                        <Button size="sm" variant="ghost" className="text-pink-200">
-                                            <Heart className="h-4 w-4 mr-1" />
-                                            {selectedArtwork.likes}
-                                        </Button>
-                                        <Button size="sm" variant="ghost" className="text-white/80">
+                                        <LikeButton
+                                            artworkId={selectedArtwork.id}
+                                            initialLikes={selectedArtwork.likes}
+                                        />
+                                        {/* <Button size="sm" variant="ghost" className="text-white/80">
                                             <Share2 className="h-4 w-4 mr-1" />
                                             Share
-                                        </Button>
+                                        </Button> */}
                                     </div>
                                 </div>
 
@@ -275,8 +308,7 @@ const CommunityArtPage = () => {
                                     {selectedArtwork.tags.map((tag) => (
                                         <Badge
                                             key={tag}
-                                            className="bg-white/10 text-white/80 hover:bg-white/20 cursor-pointer"
-                                            onClick={() => setSearchQuery(tag)}
+                                            className="bg-white/10 text-white/80 hover:bg-white/20"
                                         >
                                             #{tag}
                                         </Badge>

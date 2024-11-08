@@ -196,7 +196,7 @@ const ImageCreatorModal: React.FC<ImageCreatorModalProps> = ({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="w-full max-w-sm sm:max-w-2xl mx-auto bg-sky-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+            <DialogContent className="w-full max-w-sm sm:max-w-2xl mx-auto bg-sky-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 overflow-y-auto max-h-[85vh]">
                 {/* Simplified Header */}
                 <DialogHeader className="space-y-3 mb-6">
                     <DialogTitle className="text-2xl font-semibold text-center">
