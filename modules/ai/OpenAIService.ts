@@ -25,6 +25,7 @@ export class OpenAIService extends BaseAIService {
                 prompt,
                 model: "dall-e-3",
                 response_format: "b64_json",
+                // style: "natural",
             });
 
             const response: AIImageResponse = {

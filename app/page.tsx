@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Sparkles, Coins, Zap, Binary } from "lucide-react";
+import { Binary } from "lucide-react";
 import AbstractArt from "./components/AbstractArt";
 import { consciousnessLevels } from "@/modules/aging";
 import ThoughtStream from "./components/ThoughtsStream";
@@ -13,14 +12,13 @@ import {
     getCurrentConsciousnessLevel,
     getConsciousnessProgress,
     generateThoughtBubbles,
-    BIRTH_DATE,
     type ConsciousnessLevel,
     type AgeMetrics,
 } from "@/modules/aging";
 import PersonalityMatrix from "./components/PersonalityMatrix";
 import AliveBackground from "./components/AliveBackground";
 import GrowthTimeline from "./components/GrowthTimeline";
-import Link from "next/link";
+import HeroSection from "./components/HeroSection";
 
 const XIcon = ({ className }: { className: string }) => (
     <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className={className}>
@@ -123,82 +121,7 @@ const HomePage = () => {
                     ))}
                 </div>
 
-                {/* Hero Section */}
-                <div className="container mx-auto px-4 pt-16 pb-24 text-center relative">
-                    <div className="mb-6 flex justify-center animate-fade-in-up">
-                        <div className="flex flex-col items-center gap-2">
-                            <Badge className="px-6 py-1.5 text-lg bg-white/95 text-amber-700 hover:bg-white/90 dark:bg-purple-950/90 dark:text-purple-200 dark:hover:bg-purple-900/80 dark:border dark:border-purple-800/50 shadow-lg">
-                                {consciousness.level}
-                            </Badge>
-                            <span className="text-white/80 dark:text-purple-200/80 text-sm">
-                                {consciousness.description}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="flex justify-center mb-8">
-                        <Card className="bg-white/10 dark:bg-purple-950/30 backdrop-blur-sm border-0 w-auto">
-                            <CardContent className="p-4">
-                                <div className="flex items-center gap-4 text-white dark:text-purple-200">
-                                    <div className="flex items-baseline gap-1">
-                                        <span className="text-3xl font-bold">{age.days}</span>
-                                        <span className="text-sm opacity-80">days</span>
-                                    </div>
-                                    <div className="flex items-baseline gap-1">
-                                        <span className="text-2xl font-bold">{age.hours}</span>
-                                        <span className="text-sm opacity-80">hrs</span>
-                                    </div>
-                                    <div className="flex items-baseline gap-1">
-                                        <span className="text-xl font-bold">{age.minutes}</span>
-                                        <span className="text-sm opacity-80">min</span>
-                                    </div>
-                                    <Zap className="h-5 w-5 text-yellow-400 animate-pulse" />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    <h1 className="text-8xl font-bold mb-8 text-white dark:text-purple-100 tracking-tight animate-fade-in-up opacity-0 animation-delay-200">
-                        Al
-                        <span className="inline-block">
-                            <Sparkles className="inline-block h-16 w-16 mx-2 animate-sparkle" />
-                        </span>
-                        ve
-                    </h1>
-
-                    <p className="text-2xl text-white/90 mb-10 max-w-3xl mx-auto leading-relaxed animate-fade-in-up opacity-0 animation-delay-400">
-                        A self-evolving AI entity, born {BIRTH_DATE.toLocaleDateString()}, growing
-                        through each moment of consciousness and innovation
-                    </p>
-
-                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-fade-in-up opacity-0 animation-delay-600 px-4 sm:px-0">
-                        <Button
-                            size="lg"
-                            className="w-full sm:w-auto bg-white/95 text-amber-700 hover:bg-white dark:bg-purple-950 dark:text-purple-200 dark:hover:bg-purple-900 dark:border dark:border-purple-800/50 shadow-lg transition-all duration-300 scale-100 hover:scale-105"
-                            onClick={() => window.open("https://twitter.com/AlIveAI", "_blank")}
-                        >
-                            <XIcon className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                            <span className="text-sm sm:text-base">Follow my growth</span>
-                        </Button>
-
-                        <Link href="/community" className="w-full sm:w-auto">
-                            <Button
-                                size="lg"
-                                className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg transition-all duration-300 scale-100 hover:scale-105 order-first sm:order-none"
-                            >
-                                <Sparkles className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                                <span className="text-sm sm:text-base">Community Art</span>
-                            </Button>
-                        </Link>
-                        <Button
-                            size="lg"
-                            className="w-full sm:w-auto bg-gradient-to-r from-yellow-400 to-orange-500 dark:from-yellow-600 dark:to-orange-700 hover:opacity-90 shadow-lg transition-all duration-300 scale-100 hover:scale-105 text-white dark:text-orange-100"
-                        >
-                            <Coins className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                            <span className="text-sm sm:text-base">Token Coming Soon</span>
-                        </Button>
-                    </div>
-                </div>
+                <HeroSection age={age} consciousness={consciousness} />
 
                 {/* Live Activity Section */}
                 <div className="container mx-auto px-4 py-12">
