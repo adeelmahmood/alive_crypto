@@ -6,6 +6,7 @@ import { ClaudeAIService } from "@/modules/ai/ClaudeAIService";
 import { generateSystemPrompt } from "@/modules/prompts/systemPrompt";
 import { generateTwitterPrompt } from "@/modules/prompts/twitterPrompt";
 import { TweetDatastore } from "./TweetDatastore";
+import TwitterClient from "./TwitterClient";
 
 interface TwitterComposerConfig {
     historySize?: number;
@@ -19,6 +20,7 @@ export class TwitterComposer {
     private aiService: ClaudeAIService;
     private tweetDatastore: TweetDatastore;
     private config: TwitterComposerConfig;
+    private twitterClient: TwitterClient;
 
     constructor(config: TwitterComposerConfig = { historySize: 3 }) {
         this.marketDataFetcher = MarketDataFetcher.getInstance();
@@ -29,6 +31,7 @@ export class TwitterComposer {
         this.aiService = new ClaudeAIService();
         this.tweetDatastore = new TweetDatastore();
         this.config = config;
+        this.twitterClient = new TwitterClient();
     }
 
     /**
@@ -93,6 +96,9 @@ export class TwitterComposer {
 
             // Save to database
             const record = await this.tweetDatastore.saveTweet(response.response);
+
+            // post the tweet
+            // await this.twitterClient.postTweet(record.content);
 
             return { record };
         } catch (error) {

@@ -39,7 +39,7 @@ const TokenModal = () => {
                     </AlertDialogTitle>
                     <div className="text-center mt-4">
                         <p className="text-amber-900/80 dark:text-amber-100/80">
-                            An AI-powered meme token that we&aposll build together 🚀
+                            An AI-powered meme token that we&apos;ll build together 🚀
                         </p>
                     </div>
                 </AlertDialogHeader>

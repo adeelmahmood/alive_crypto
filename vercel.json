@@ -1,0 +1,8 @@
+{
+    "crons": [
+        {
+            "path": "/api/int__erna_l",
+            "schedule": "0 10 * * *"
+        }
+    ]
+}
