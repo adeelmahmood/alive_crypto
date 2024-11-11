@@ -158,7 +158,7 @@ const HomePage = () => {
                                     size="lg"
                                     className="bg-white/95 text-amber-700 hover:bg-white dark:bg-purple-950 dark:text-purple-200 dark:hover:bg-purple-900 dark:border dark:border-purple-800/50 shadow-lg transition-all duration-300 scale-100 hover:scale-105"
                                     onClick={() =>
-                                        window.open("https://twitter.com/AlIveAI", "_blank")
+                                        window.open("https://x.com/AliveAICrypto", "_blank")
                                     }
                                 >
                                     <XIcon className="mr-2 h-5 w-5" />
