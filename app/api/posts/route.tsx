@@ -1,6 +1,9 @@
 import { TweetDatastore } from "@/modules/twitter/TweetDatastore";
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 60;
+
 export async function GET() {
     try {
         const tweetDatastore = new TweetDatastore();

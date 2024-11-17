@@ -2,7 +2,6 @@ import { TweetRecord, TweetResponse } from "@/types";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
 export class TweetDatastore {
-    private static instance: TweetDatastore;
     private supabase: SupabaseClient;
 
     public constructor() {

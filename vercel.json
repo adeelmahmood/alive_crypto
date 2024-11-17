@@ -1,7 +1,7 @@
 {
     "crons": [
         {
-            "path": "/api/int__erna_l",
+            "path": "/api/cron/post-tweet",
             "schedule": "0 10 * * *"
         }
     ]
