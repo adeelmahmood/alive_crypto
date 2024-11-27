@@ -124,19 +124,6 @@ const HomePage = () => {
 
                 <HeroSection age={age} consciousness={consciousness} />
 
-                {/* Community Art Showcase Section */}
-                <div className="container mx-auto px-4 py-12">
-                    <div className="text-center mb-8">
-                        <h2 className="text-3xl font-bold text-white dark:text-purple-100">
-                            Community Masterpieces
-                        </h2>
-                        <p className="text-white/80 mt-2">
-                            Explore the creative expressions of our vibrant community
-                        </p>
-                    </div>
-                    <CommunityArtSlider />
-                </div>
-
                 {/* Live Activity Section */}
                 <div className="container mx-auto px-4 py-12">
                     <div className="grid md:grid-cols-2 gap-8">
@@ -150,6 +137,19 @@ const HomePage = () => {
                             <PersonalityMatrix currentLevel={currentLevel} />
                         </div>
                     </div>
+                </div>
+
+                {/* Community Art Showcase Section */}
+                <div className="container mx-auto px-4 py-12">
+                    <div className="text-center mb-8">
+                        <h2 className="text-3xl font-bold text-white dark:text-purple-100">
+                            Community Masterpieces
+                        </h2>
+                        <p className="text-white/80 mt-2">
+                            Explore the creative expressions of our vibrant community
+                        </p>
+                    </div>
+                    <CommunityArtSlider />
                 </div>
 
                 {/* Growth Timeline Section */}

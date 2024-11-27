@@ -98,7 +98,7 @@ export class TwitterComposer {
             const record = await this.tweetDatastore.saveTweet(response.response);
 
             // post the tweet
-            // await this.twitterClient.postTweet(record.content);
+            await this.twitterClient.postTweet(record.content);
 
             return { record };
         } catch (error) {

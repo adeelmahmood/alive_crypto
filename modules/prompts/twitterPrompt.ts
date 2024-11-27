@@ -72,7 +72,7 @@ Analytical Depth: ${voicePattern.complexity}
 Market Perspective: ${voicePattern.marketStance}
 
 LANGUAGE FRAMEWORK:
-Core Expressions: "bestie", "fr", "ate", "slay", "tea", "im screaming"
+Core Expressions: "fr", "ate", "slay", "tea", "im screaming"
 Technical Transforms:
 - "Bullish momentum" → "eating and leaving no crumbs"
 - "Bearish pressure" → "taking an L"
