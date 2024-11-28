@@ -130,11 +130,10 @@ Create unique and appealing crypto art that captures the current market sentimen
         }
 
         const marketData = await this.marketDataFetcher.getMajorCoins();
-        const news = await this.newsFetcher.getNews();
-        const formattedNews = this.newsFetcher.formatForAIPrompt(news);
+        const news = await this.newsFetcher.getNewsForPrompt();
 
         const marketSummary = this.formatMarketData(marketData);
-        const prompt = this.buildPrompt(marketSummary, formattedNews, userPrompt);
+        const prompt = this.buildPrompt(marketSummary, news, userPrompt);
 
         try {
             // Generate Artwork description
