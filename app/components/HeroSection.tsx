@@ -93,7 +93,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ age, consciousness }) => {
                 <Button
                     size="lg"
                     className="w-full sm:w-auto bg-white/95 text-amber-700 hover:bg-white dark:bg-purple-950 dark:text-purple-200 dark:hover:bg-purple-900 dark:border dark:border-purple-800/50 shadow-lg transition-all duration-300 scale-100 hover:scale-105"
-                    onClick={() => window.open("https://x.com/AliveAICrypto", "_blank")}
+                    onClick={() => window.open("https://x.com/CryptoaliveXyz", "_blank")}
                 >
                     <XIcon className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                     <span className="text-sm sm:text-base">Join My Journey</span>

@@ -48,7 +48,7 @@ const TokenModal = () => {
                         Close
                     </AlertDialogCancel>
                     <Button
-                        onClick={() => window.open("https://twitter.com/AlIveAI", "_blank")}
+                        onClick={() => window.open("https://x.com/CryptoaliveXyz", "_blank")}
                         className="bg-gradient-to-r from-amber-500 to-orange-500 dark:from-amber-600 dark:to-orange-600 text-white hover:opacity-90"
                     >
                         Follow Updates

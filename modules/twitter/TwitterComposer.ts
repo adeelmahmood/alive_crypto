@@ -1,5 +1,3 @@
-import OnChainDataFetcher from "@/modules/crypto/OnChainDataFetcher";
-import OnChainDataInsights from "@/modules/crypto/OnChainDataInsights";
 import MarketDataFetcher from "@/modules/crypto/MarketDataFetcher";
 import CryptoNewsFetcher from "@/modules/news/CryptoNewsFetcher";
 import { ClaudeAIService } from "@/modules/ai/ClaudeAIService";
@@ -14,8 +12,6 @@ interface TwitterComposerConfig {
 
 export class TwitterComposer {
     private marketDataFetcher: MarketDataFetcher;
-    private onChainDataFetcher: OnChainDataFetcher;
-    private onChainDataInsights: OnChainDataInsights;
     private newsFetcher: CryptoNewsFetcher;
     private aiService: ClaudeAIService;
     private tweetDatastore: TweetDatastore;
@@ -24,8 +20,6 @@ export class TwitterComposer {
 
     constructor(config: TwitterComposerConfig = { historySize: 3 }) {
         this.marketDataFetcher = MarketDataFetcher.getInstance();
-        this.onChainDataFetcher = OnChainDataFetcher.getInstance();
-        this.onChainDataInsights = OnChainDataInsights.getInstance();
 
         this.newsFetcher = new CryptoNewsFetcher();
         this.aiService = new ClaudeAIService();
@@ -40,23 +34,22 @@ export class TwitterComposer {
     private async gatherData() {
         console.log("Requesting major coins data...");
         const majorCoins = await this.marketDataFetcher.getMajorCoins();
-        console.log("Requesting AI meme coins data...");
-        const aiMemeCoinsSummary = await this.marketDataFetcher.getAIMemeSummary();
-        console.log("Requesting on-chain metrics...");
-        const onchainMetrics = await this.onChainDataFetcher.getMetrics();
+        // console.log("Requesting AI meme coins data...");
+        // const aiMemeCoinsSummary = await this.marketDataFetcher.getAIMemeSummary();
+        // console.log("Requesting on-chain metrics...");
+        // const onchainMetrics = await this.onChainDataFetcher.getMetrics();
         console.log("Requesting news...");
-        const news = await this.newsFetcher.getNews();
+        const news = await this.newsFetcher.getNewsForPrompt();
 
-        const marketInsight = await this.onChainDataInsights.generateInsights(
-            onchainMetrics.transfers
-        );
-        const formattedNews = this.newsFetcher.formatForAIPrompt(news);
+        // const marketInsight = await this.onChainDataInsights.generateInsights(
+        //     onchainMetrics.transfers
+        // );
 
         return {
             majorCoins,
-            aiMemeCoinsSummary,
-            marketInsight,
-            formattedNews,
+            // aiMemeCoinsSummary,
+            // marketInsight,
+            news,
         };
     }
 
@@ -68,21 +61,14 @@ export class TwitterComposer {
     }> {
         try {
             // Gather all required data
-            const { majorCoins, aiMemeCoinsSummary, marketInsight, formattedNews } =
-                await this.gatherData();
+            const { majorCoins, news } = await this.gatherData();
 
             // Get tweet history from repository
             const history = await this.tweetDatastore.getRecentHistory(this.config.historySize);
 
             // Generate prompts
             const systemPrompt = generateSystemPrompt();
-            const userPrompt = generateTwitterPrompt(
-                history,
-                marketInsight,
-                majorCoins,
-                aiMemeCoinsSummary,
-                formattedNews
-            );
+            const userPrompt = generateTwitterPrompt(history, majorCoins, news);
             console.log(
                 "\n\n ------------------------------- USER PROMPT - START -------------------------------\n\n"
             );
@@ -98,7 +84,11 @@ export class TwitterComposer {
             const record = await this.tweetDatastore.saveTweet(response.response);
 
             // post the tweet
-            await this.twitterClient.postTweet(record.content);
+            const tweet = await this.twitterClient.postTweet(record.content);
+            if (tweet && tweet.data.id) {
+                // update the tweet with the twitter post id
+                await this.markTweetAsPosted(record.id, tweet.data.id);
+            }
 
             return { record };
         } catch (error) {

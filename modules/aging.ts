@@ -1,4 +1,4 @@
-export const BIRTH_DATE = new Date("2024-10-29");
+export const BIRTH_DATE = new Date("2024-11-15");
 
 export interface AgeMetrics {
     days: number;
