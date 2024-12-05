@@ -15,9 +15,9 @@ export async function GET(request: NextRequest) {
 
         // Compose a new tweet and post it
         const composer = new TwitterComposer();
-        const { record } = await composer.composeTweet();
+        const records = await composer.composeTweet();
 
-        return NextResponse.json({ record });
+        return NextResponse.json({ records });
     } catch (error) {
         console.error("Error in invoking post tweet operation:", error);
         return NextResponse.json({ error }, { status: 500 });
