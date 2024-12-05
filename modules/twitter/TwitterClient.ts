@@ -1,3 +1,4 @@
+import { TweetRecord } from "@/types";
 import { TwitterApi, TwitterApiReadWrite, TwitterApiReadOnly } from "twitter-api-v2";
 
 class TwitterClient {
@@ -17,18 +18,27 @@ class TwitterClient {
         this.rClient = userClient.readOnly;
     }
 
-    async postTweet(text: string, replyToTweetId?: string) {
-        try {
-            if (replyToTweetId) {
-                return await this.rwClient.v2.tweet(text, {
-                    reply: { in_reply_to_tweet_id: replyToTweetId },
-                });
+    async postTweets(tweets: TweetRecord[]): Promise<{ tweetId: string; recordId: number }[]> {
+        const postedTweets: { tweetId: string; recordId: number }[] = [];
+
+        for (const tweet of tweets) {
+            try {
+                const postedTweet = await this.rwClient.v2.tweet(tweet.content);
+
+                if (postedTweet?.data?.id) {
+                    postedTweets.push({
+                        tweetId: postedTweet.data.id,
+                        recordId: tweet.id,
+                    });
+                }
+            } catch (error) {
+                console.error(`Error posting tweet ${tweet.id}:`, error);
+                // Continue with next tweet even if this one fails
+                continue;
             }
-            return await this.rwClient.v2.tweet(text);
-        } catch (error) {
-            console.error("Error posting tweet:", error);
-            throw error;
         }
+
+        return postedTweets;
     }
 
     async getTimeline(userId?: string, maxResults: number = 100) {

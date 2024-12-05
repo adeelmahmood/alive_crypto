@@ -1,10 +1,10 @@
 import MarketDataFetcher from "@/modules/crypto/MarketDataFetcher";
 import CryptoNewsFetcher from "@/modules/news/CryptoNewsFetcher";
-import { ClaudeAIService } from "@/modules/ai/ClaudeAIService";
 import { generateSystemPrompt } from "@/modules/prompts/systemPrompt";
 import { generateTwitterPrompt } from "@/modules/prompts/twitterPrompt";
 import { TweetDatastore } from "./TweetDatastore";
 import TwitterClient from "./TwitterClient";
+import { HyperbolicAIService } from "../ai/HyperbolicAIService";
 
 interface TwitterComposerConfig {
     historySize?: number;
@@ -13,7 +13,7 @@ interface TwitterComposerConfig {
 export class TwitterComposer {
     private marketDataFetcher: MarketDataFetcher;
     private newsFetcher: CryptoNewsFetcher;
-    private aiService: ClaudeAIService;
+    private aiService: HyperbolicAIService;
     private tweetDatastore: TweetDatastore;
     private config: TwitterComposerConfig;
     private twitterClient: TwitterClient;
@@ -22,7 +22,7 @@ export class TwitterComposer {
         this.marketDataFetcher = MarketDataFetcher.getInstance();
 
         this.newsFetcher = new CryptoNewsFetcher();
-        this.aiService = new ClaudeAIService();
+        this.aiService = new HyperbolicAIService();
         this.tweetDatastore = new TweetDatastore();
         this.config = config;
         this.twitterClient = new TwitterClient();
@@ -56,9 +56,7 @@ export class TwitterComposer {
     /**
      * Generate a new tweet using the AI service
      */
-    public async composeTweet(): Promise<{
-        record: any;
-    }> {
+    public async composeTweet() {
         try {
             // Gather all required data
             const { majorCoins, news } = await this.gatherData();
@@ -81,16 +79,24 @@ export class TwitterComposer {
             const response = await this.aiService.generateResponse(systemPrompt, userPrompt);
 
             // Save to database
-            const record = await this.tweetDatastore.saveTweet(response.response);
+            const records = await this.tweetDatastore.saveTweets(response.response);
 
-            // post the tweet
-            const tweet = await this.twitterClient.postTweet(record.content);
-            if (tweet && tweet.data.id) {
-                // update the tweet with the twitter post id
-                await this.markTweetAsPosted(record.id, tweet.data.id);
+            if (records.length === 0) {
+                throw new Error("No tweets saved");
             }
 
-            return { record };
+            // post tweets
+            const postedTweets = await this.twitterClient.postTweets(records);
+            // Update database records with Twitter IDs
+            for (const { tweetId, recordId } of postedTweets) {
+                await this.markTweetAsPosted(recordId, tweetId);
+            }
+
+            return {
+                records,
+                postedCount: postedTweets.length,
+                totalTweets: records.length,
+            };
         } catch (error) {
             console.error("Error in tweet composition:", error);
             throw new Error(

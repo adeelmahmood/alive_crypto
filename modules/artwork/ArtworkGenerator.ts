@@ -1,13 +1,13 @@
 import { Artwork, ArtworkCreate } from "@/types";
-import { OpenAIService } from "../ai/OpenAIService";
 import { ArtworkDatastore } from "./ArtworkDatastore";
+import { HyperbolicAIService } from "../ai/HyperbolicAIService";
 
 export class ArtworkGenerator {
-    private imageService: OpenAIService;
+    private imageService: HyperbolicAIService;
     private datastore: ArtworkDatastore;
 
     constructor() {
-        this.imageService = new OpenAIService();
+        this.imageService = new HyperbolicAIService();
         this.datastore = new ArtworkDatastore();
     }
 

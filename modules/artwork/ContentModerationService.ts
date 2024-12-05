@@ -1,6 +1,4 @@
-import axios from "axios";
-import { ClaudeAIService } from "../ai/ClaudeAIService";
-import { OpenAIService } from "../ai/OpenAIService";
+import { HyperbolicAIService } from "../ai/HyperbolicAIService";
 
 export interface ModerationResult {
     isAllowed: boolean;
@@ -8,54 +6,52 @@ export interface ModerationResult {
 }
 
 export class ContentModerationService {
-    private claude: ClaudeAIService;
-    private openAIKey: string;
+    private aiService: HyperbolicAIService;
 
     constructor() {
-        this.claude = new ClaudeAIService();
-        this.openAIKey = process.env.OPENAI_API_KEY!;
+        this.aiService = new HyperbolicAIService();
     }
 
-    public async checkWithOpenAI(text: string): Promise<ModerationResult> {
+    // public async checkWithOpenAI(text: string): Promise<ModerationResult> {
+    //     try {
+    //         const response = await axios.post(
+    //             "https://api.openai.com/v1/moderations",
+    //             { input: text },
+    //             {
+    //                 headers: {
+    //                     Authorization: `Bearer ${this.openAIKey}`,
+    //                     "Content-Type": "application/json",
+    //                 },
+    //             }
+    //         );
+
+    //         const result = response.data.results[0];
+
+    //         // If any category is flagged
+    //         if (result.flagged) {
+    //             // Find which categories were flagged
+    //             const flaggedCategories = Object.entries(result.categories)
+    //                 .filter(([_, flagged]) => flagged)
+    //                 .map(([category]) => category)
+    //                 .join(", ");
+
+    //             return {
+    //                 isAllowed: false,
+    //                 reason: `Content flagged for: ${flaggedCategories}`,
+    //             };
+    //         }
+
+    //         return { isAllowed: true };
+    //     } catch (error) {
+    //         console.error("OpenAI moderation API error:", error);
+    //         // Fail closed - if the API fails, we'll rely on Claude's moderation
+    //         return { isAllowed: true };
+    //     }
+    // }
+
+    public async checkWithAIService(text: string): Promise<ModerationResult> {
         try {
-            const response = await axios.post(
-                "https://api.openai.com/v1/moderations",
-                { input: text },
-                {
-                    headers: {
-                        Authorization: `Bearer ${this.openAIKey}`,
-                        "Content-Type": "application/json",
-                    },
-                }
-            );
-
-            const result = response.data.results[0];
-
-            // If any category is flagged
-            if (result.flagged) {
-                // Find which categories were flagged
-                const flaggedCategories = Object.entries(result.categories)
-                    .filter(([_, flagged]) => flagged)
-                    .map(([category]) => category)
-                    .join(", ");
-
-                return {
-                    isAllowed: false,
-                    reason: `Content flagged for: ${flaggedCategories}`,
-                };
-            }
-
-            return { isAllowed: true };
-        } catch (error) {
-            console.error("OpenAI moderation API error:", error);
-            // Fail closed - if the API fails, we'll rely on Claude's moderation
-            return { isAllowed: true };
-        }
-    }
-
-    public async checkWithClaude(text: string): Promise<ModerationResult> {
-        try {
-            const response = await this.claude.generateResponse(
+            const response = await this.aiService.generateResponse(
                 "You are a content moderator. Your task is to evaluate if the following content is appropriate for generating artwork. The content should not contain anything offensive, harmful, explicit, or inappropriate. Respond in XML format only.",
                 `Please evaluate this content: "${text}"
 
@@ -82,17 +78,14 @@ Response format:
     }
 
     public async moderateContent(text: string): Promise<ModerationResult> {
-        // Run both moderations in parallel
-        const [openAIResult, claudeResult] = await Promise.all([
-            this.checkWithOpenAI(text),
-            this.checkWithClaude(text),
-        ]);
+        // Run moderations check
+        const [response] = await Promise.all([this.checkWithAIService(text)]);
 
-        // If either service flags the content, reject it
-        if (!openAIResult.isAllowed || !claudeResult.isAllowed) {
+        // If content is flagged, reject it
+        if (!response.isAllowed) {
             return {
                 isAllowed: false,
-                reason: openAIResult.reason || claudeResult.reason,
+                reason: response.reason,
             };
         }
 

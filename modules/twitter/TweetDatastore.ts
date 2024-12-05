@@ -15,26 +15,58 @@ export class TweetDatastore {
         this.supabase = createClient(supabaseUrl, supabaseKey);
     }
 
+    private decodeHtmlEntities(text: string): string {
+        const entities = {
+            "&amp;": "&",
+            "&lt;": "<",
+            "&gt;": ">",
+            "&quot;": '"',
+            "&#039;": "'",
+            "&apos;": "'",
+        };
+        return text.replace(
+            /&amp;|&lt;|&gt;|&quot;|&#039;|&apos;/g,
+            (entity) => entities[entity as keyof typeof entities]
+        );
+    }
+
     /**
-     * Save a new tweet to the database
+     * Save one or more tweets to the database
      */
-    async saveTweet(rawResponse: string): Promise<TweetRecord> {
-        // parse <tweet>...</tweet> and <thoughts>...</thoughts> from YAML
-        const tweet = rawResponse.match(/<tweet>([\s\S]*?)<\/tweet>/)?.[1];
+    async saveTweets(rawResponse: string): Promise<TweetRecord[]> {
+        // Parse all tweets and thoughts from the response
+        const tweetsMatch = rawResponse.match(/<tweets>([\s\S]*?)<\/tweets>/)?.[1];
         const thoughts = rawResponse.match(/<thoughts>([\s\S]*?)<\/thoughts>/)?.[1];
 
-        const { data, error } = await this.supabase
-            .from("tweets")
-            .insert({
-                content: tweet?.trim(),
-                thoughts: thoughts?.trim(),
-                posted: false,
+        if (!tweetsMatch) {
+            throw new Error("No tweets found in response");
+        }
+
+        // Extract individual tweets
+        const tweetContents = tweetsMatch
+            .match(/<tweet>[\s\S]*?<\/tweet>/g)
+            ?.map((tweet) => {
+                const content = tweet.match(/<tweet>([\s\S]*?)<\/tweet>/)?.[1]?.trim();
+                // Decode HTML entities like &amp; back to &
+                return content ? this.decodeHtmlEntities(content) : undefined;
             })
-            .select()
-            .single();
+            ?.filter((tweet): tweet is string => tweet !== undefined);
+
+        if (!tweetContents || tweetContents.length === 0) {
+            throw new Error("No valid tweets found in response");
+        }
+
+        // Insert all tweets as a batch
+        const tweetsToInsert = tweetContents.map((content) => ({
+            content,
+            thoughts: thoughts?.trim(),
+            posted: false,
+        }));
+
+        const { data, error } = await this.supabase.from("tweets").insert(tweetsToInsert).select();
 
         if (error) {
-            throw new Error(`Failed to save tweet: ${error.message}`);
+            throw new Error(`Failed to save tweets: ${error.message}`);
         }
 
         return data;

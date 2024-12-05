@@ -307,7 +307,7 @@ const ImageCreatorModal: React.FC<ImageCreatorModalProps> = ({
 
                     {/* Error Message */}
                     {status.error && (
-                        <Alert variant="destructive" className="mt-4">
+                        <Alert variant="destructive" className="mt-4 dark:text-red-600">
                             <AlertDescription>{status.error}</AlertDescription>
                         </Alert>
                     )}

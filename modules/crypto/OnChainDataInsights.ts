@@ -1,13 +1,13 @@
 import { MarketInsight, ProcessedMetrics, TokenTransfer } from "@/types";
-import { ClaudeAIService } from "../ai/ClaudeAIService";
+import { HyperbolicAIService } from "../ai/HyperbolicAIService";
 
 class OnChainDataInsights {
     private static instance: OnChainDataInsights;
     private readonly LARGE_TRANSFER_THRESHOLD_USD = 100000; // $100k threshold
-    private aiService: ClaudeAIService;
+    private aiService: HyperbolicAIService;
 
     private constructor() {
-        this.aiService = new ClaudeAIService();
+        this.aiService = new HyperbolicAIService();
     }
 
     public static getInstance(): OnChainDataInsights {

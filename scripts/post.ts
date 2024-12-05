@@ -13,8 +13,8 @@ export const post = async () => {
 
         // compose 5 tweets
         // for (let i = 0; i < 3; i++) {
-        const { record } = await composer.composeTweet();
-        console.log("New Tweet:: ", record);
+        const result = await composer.composeTweet();
+        console.log(result);
         // separator
         console.log("\n-------------------\n");
         // }

@@ -1,4 +1,4 @@
-import { ClaudeAIService } from "@/modules/ai/ClaudeAIService";
+import { HyperbolicAIService } from "@/modules/ai/HyperbolicAIService";
 import { generateChatPrompt } from "@/modules/prompts/chatPrompt";
 import { generateSystemPrompt } from "@/modules/prompts/systemPrompt";
 import { NextRequest, NextResponse } from "next/server";
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
         console.log("Chat prompt:", chatPrompt);
 
         // Generate response
-        const aiService = new ClaudeAIService();
+        const aiService = new HyperbolicAIService();
         const response = await aiService.generateResponse(systemPrompt, chatPrompt);
         console.log("\n-----------------------------\n");
 
