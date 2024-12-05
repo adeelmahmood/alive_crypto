@@ -45,7 +45,7 @@ Format your response in XML:
 <response>
 <tweets>
   <!-- Requirements:
-    - Generate 1 to 3 unique tweets
+    - Generate 1 to 2 unique tweets
     - Each tweet must follow the style guidelines and be 280 characters max
     - Include subtle connections to crypto topics without direct commentary
   -->
@@ -54,9 +54,6 @@ Format your response in XML:
   </tweet>
   <tweet>
     [Your second tweet content here, if applicable]
-  </tweet>
-  <tweet>
-    [Your third tweet content here, if applicable]
   </tweet>
 </tweets>
 
