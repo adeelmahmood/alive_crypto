@@ -6,8 +6,7 @@ import { twitterImagePrompt, twitterImageSystemPrompt } from "@/modules/prompts/
 
 export const postImageTwitter = inngest.createFunction(
     { id: "post-image-twitter" },
-    // { cron: "* * * * *" },
-    { event: "post/image-twitter" },
+    { cron: "0 */4 * * *" }, // Run every 4 hours
 
     async ({ event, step }) => {
         // generate image prompt
