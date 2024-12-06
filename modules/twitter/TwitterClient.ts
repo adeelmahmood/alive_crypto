@@ -18,27 +18,42 @@ class TwitterClient {
         this.rClient = userClient.readOnly;
     }
 
-    async postTweets(tweets: TweetRecord[]): Promise<{ tweetId: string; recordId: number }[]> {
-        const postedTweets: { tweetId: string; recordId: number }[] = [];
+    async postTweetWithImage(
+        text: string,
+        imageBuffer: Buffer
+    ): Promise<{ data: { id: string } } | undefined> {
+        try {
+            // Step 1: Upload the media using v1 API
+            const mediaId = await this.rwClient.v1.uploadMedia(imageBuffer, {
+                mimeType: "image/png",
+            });
 
-        for (const tweet of tweets) {
-            try {
-                const postedTweet = await this.rwClient.v2.tweet(tweet.content);
+            // Step 2: Create tweet with media using v2 API
+            const tweet = await this.rwClient.v2.tweet(text, {
+                media: {
+                    media_ids: [mediaId],
+                },
+            });
 
-                if (postedTweet?.data?.id) {
-                    postedTweets.push({
-                        tweetId: postedTweet.data.id,
-                        recordId: tweet.id,
-                    });
-                }
-            } catch (error) {
-                console.error(`Error posting tweet ${tweet.id}:`, error);
-                // Continue with next tweet even if this one fails
-                continue;
-            }
+            return tweet;
+        } catch (error) {
+            console.error("Error posting tweet with image:", error);
+            throw error;
         }
+    }
 
-        return postedTweets;
+    async postTweet(text: string, replyToTweetId?: string) {
+        try {
+            if (replyToTweetId) {
+                return await this.rwClient.v2.tweet(text, {
+                    reply: { in_reply_to_tweet_id: replyToTweetId },
+                });
+            }
+            return await this.rwClient.v2.tweet(text);
+        } catch (error) {
+            console.error("Error posting tweet:", error);
+            throw error;
+        }
     }
 
     async getTimeline(userId?: string, maxResults: number = 100) {

@@ -101,7 +101,6 @@ export class HyperbolicAIService extends BaseAIService {
                 max_tokens: 512,
                 temperature: 1,
             });
-            console.log("completion", completion);
 
             const response = completion.choices[0]?.message?.content?.trim();
             if (!response) {

@@ -36,31 +36,28 @@ CURRENT DEVELOPMENTS:
 ${news}
 
 EXPRESSION GUIDELINES:
-- Craft tweets that are concise yet thought-provoking
+- Craft a tweet that is concise yet thought-provoking
 - Avoid direct price commentary; focus on the meaning behind movements
 - Use subtle metaphors and analogies
 - Encourage reflection and curiosity
 
 Format your response in XML:
 <response>
-<tweets>
-  <!-- Requirements:
-    - Generate 1 to 2 unique tweets
-    - Each tweet must follow the style guidelines and be 280 characters max
-    - Include subtle connections to crypto topics without direct commentary
-  -->
-  <tweet>
-    [Your first tweet content here]
-  </tweet>
-  <tweet>
-    [Your second tweet content here, if applicable]
-  </tweet>
-</tweets>
-
 <thoughts>    
-  <!-- Reflect on how these messages add to your ongoing narrative -->
-  [Your reflective thoughts on the posts]
+<!-- First, reflect briefly on the current state and what narrative you want to convey -->
+<!-- Use these thoughts to guide your tweet creation -->
+[Your concise reflective thoughts that will shape your tweet, keep it within few sentences]
 </thoughts>
+
+<tweet>
+<!-- Requirements:
+  - Generate a tweet informed by your thoughts above
+  - Tweet must follow the style guidelines and be 280 characters max
+  - Include subtle connections to crypto topics without direct commentary
+  - Ensure the tweet aligns with your reflective narrative
+-->
+[Your tweet content here]
+</tweet>
 </response>
 `;
 }

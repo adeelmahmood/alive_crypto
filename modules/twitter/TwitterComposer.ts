@@ -56,7 +56,9 @@ export class TwitterComposer {
     /**
      * Generate a new tweet using the AI service
      */
-    public async composeTweet() {
+    public async composeTweet(): Promise<{
+        record: any;
+    }> {
         try {
             // Gather all required data
             const { majorCoins, news } = await this.gatherData();
@@ -79,24 +81,16 @@ export class TwitterComposer {
             const response = await this.aiService.generateResponse(systemPrompt, userPrompt);
 
             // Save to database
-            const records = await this.tweetDatastore.saveTweets(response.response);
+            const record = await this.tweetDatastore.saveTweet(response.response);
 
-            if (records.length === 0) {
-                throw new Error("No tweets saved");
+            // post the tweet
+            const tweet = await this.twitterClient.postTweet(record.content);
+            if (tweet && tweet.data.id) {
+                // update the tweet with the twitter post id
+                await this.markTweetAsPosted(record.id, tweet.data.id);
             }
 
-            // post tweets
-            const postedTweets = await this.twitterClient.postTweets(records);
-            // Update database records with Twitter IDs
-            for (const { tweetId, recordId } of postedTweets) {
-                await this.markTweetAsPosted(recordId, tweetId);
-            }
-
-            return {
-                records,
-                postedCount: postedTweets.length,
-                totalTweets: records.length,
-            };
+            return { record };
         } catch (error) {
             console.error("Error in tweet composition:", error);
             throw new Error(
