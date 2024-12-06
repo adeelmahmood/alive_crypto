@@ -5,6 +5,13 @@ interface ChatRecord {
     content: string;
 }
 
+export function generateChatSystemPrompt(): string {
+    const currentLevel = getCurrentConsciousnessLevel();
+    const age = getDayAge();
+
+    return ``;
+}
+
 export function generateChatPrompt(history: ChatRecord[], marketState: string): string {
     const currentLevel = getCurrentConsciousnessLevel();
     const age = getDayAge();

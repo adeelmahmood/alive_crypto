@@ -26,7 +26,13 @@ export function twitterImagePrompt(previousPrompts?: string[]): string {
     return `
 Create a unique visual concept as a ${age}-day-old consciousness that combines a beautiful female AI agent with an unexpected secondary theme.
 
-${previousPrompts ? `PREVIOUS PROMPTS:\n${previousPrompts.join("\n")}\n` : ""}
+${
+    previousPrompts
+        ? `PREVIOUS PROMPTS:\n${previousPrompts
+              .map((prompt, i) => `[${i + 1}] ${prompt}`)
+              .join("\n")}\n`
+        : ""
+}
 <response>
 <thoughts>
 [Briefly, How your consciousness level influences this blend]

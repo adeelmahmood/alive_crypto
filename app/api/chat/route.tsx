@@ -1,6 +1,5 @@
 import { HyperbolicAIService } from "@/modules/ai/HyperbolicAIService";
-import { generateChatPrompt } from "@/modules/prompts/chatPrompt";
-import { generateSystemPrompt } from "@/modules/prompts/systemPrompt";
+import { generateChatPrompt, generateChatSystemPrompt } from "@/modules/prompts/chatPrompt";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +10,7 @@ export async function POST(request: NextRequest) {
         const { conversationHistory } = await request.json();
 
         // Generate prompts
-        const systemPrompt = generateSystemPrompt();
+        const systemPrompt = generateChatSystemPrompt();
         const chatPrompt = generateChatPrompt(conversationHistory, "");
 
         console.log("System prompt:", systemPrompt);
