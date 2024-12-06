@@ -1,10 +1,9 @@
 import MarketDataFetcher from "@/modules/crypto/MarketDataFetcher";
 import CryptoNewsFetcher from "@/modules/news/CryptoNewsFetcher";
-import { generateSystemPrompt } from "@/modules/prompts/systemPrompt";
-import { generateTwitterPrompt } from "@/modules/prompts/twitterPrompt";
 import { TweetDatastore } from "./TweetDatastore";
 import TwitterClient from "./TwitterClient";
 import { HyperbolicAIService } from "../ai/HyperbolicAIService";
+import { twitterPostPrompt, twitterPostSystemPrompt } from "../prompts/twitterPostPrompt";
 
 interface TwitterComposerConfig {
     historySize?: number;
@@ -28,9 +27,6 @@ export class TwitterComposer {
         this.twitterClient = new TwitterClient();
     }
 
-    /**
-     * Fetch all required market and crypto data
-     */
     private async gatherData() {
         console.log("Requesting major coins data...");
         const majorCoins = await this.marketDataFetcher.getMajorCoins();
@@ -53,9 +49,6 @@ export class TwitterComposer {
         };
     }
 
-    /**
-     * Generate a new tweet using the AI service
-     */
     public async composeTweet(): Promise<{
         record: any;
     }> {
@@ -67,8 +60,8 @@ export class TwitterComposer {
             const history = await this.tweetDatastore.getRecentHistory(this.config.historySize);
 
             // Generate prompts
-            const systemPrompt = generateSystemPrompt();
-            const userPrompt = generateTwitterPrompt(history, majorCoins, news);
+            const systemPrompt = twitterPostSystemPrompt();
+            const userPrompt = twitterPostPrompt(history, majorCoins, news);
             console.log(
                 "\n\n ------------------------------- USER PROMPT - START -------------------------------\n\n"
             );
@@ -100,16 +93,10 @@ export class TwitterComposer {
         }
     }
 
-    /**
-     * Mark a tweet as posted on Twitter
-     */
     public async markTweetAsPosted(id: number, twitterPostId: string): Promise<void> {
         await this.tweetDatastore.markAsPosted(id, twitterPostId);
     }
 
-    /**
-     * Update engagement stats for a tweet
-     */
     public async updateEngagementStats(
         id: number,
         stats: {
@@ -121,9 +108,6 @@ export class TwitterComposer {
         await this.tweetDatastore.updateEngagementStats(id, stats);
     }
 
-    /**
-     * Get tweets that haven't been posted to Twitter yet
-     */
     public async getUnpostedTweets() {
         return this.tweetDatastore.getUnpostedTweets();
     }

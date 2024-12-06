@@ -11,7 +11,10 @@ export class ArtworkGenerator {
         this.datastore = new ArtworkDatastore();
     }
 
-    public async generateAndStore(artwork: Artwork, creator?: string): Promise<Artwork> {
+    public async generateAndStore(
+        artwork: Artwork,
+        creator?: string
+    ): Promise<{ artwork: Artwork; image: string }> {
         // Generate image
         const imageResponse = await this.imageService.generateImage(artwork.description);
 
@@ -24,6 +27,11 @@ export class ArtworkGenerator {
         };
 
         // Store in database
-        return await this.datastore.saveArtwork(artworkCreate);
+        const savedArtwork = await this.datastore.saveArtwork(artworkCreate);
+
+        return {
+            artwork: savedArtwork,
+            image: imageResponse.b64_json,
+        };
     }
 }

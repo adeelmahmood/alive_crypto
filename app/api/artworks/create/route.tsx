@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 
         // Return the result
         return NextResponse.json({
-            artwork: finalArtwork,
+            artwork: finalArtwork.artwork,
             remainingGenerations: validationResult.remainingGenerations! - 1,
         });
     } catch (error) {

@@ -72,6 +72,30 @@ export class ArtworkDatastore {
             throw error;
         }
     }
+    public async getAliveArtworks(limit: number = 3): Promise<Artwork[]> {
+        try {
+            // Build base query with likes count and visitor's like status
+            let query = this.supabase.from("artworks").select().eq("creator", "AlIve");
+
+            query = query.limit(limit);
+
+            // Order by timestamp
+            query = query.order("timestamp", { ascending: false });
+
+            const { data, error, count } = await query;
+
+            if (error) {
+                throw new Error(`Database error: ${error.message}`);
+            }
+
+            return data.map((artwork) => ({
+                ...this.transformDatabaseArtwork(artwork),
+            }));
+        } catch (error) {
+            console.error("Error retrieving artworks:", error);
+            throw error;
+        }
+    }
 
     public async getArtworks(
         visitorId: string,
