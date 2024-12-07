@@ -125,6 +125,16 @@ const traitPatterns: Record<string, TraitGrowthPattern> = {
     },
 };
 
+export function processTraits(traits: NumericTraits) {
+    const result: Record<string, string> = {};
+
+    Object.entries(traits).forEach(([trait, value]) => {
+        result[trait] = getTraitLabel(value);
+    });
+
+    return result;
+}
+
 function calculateTraitValue(age: number, pattern: TraitGrowthPattern): number {
     const {
         baseGrowth,
@@ -195,8 +205,6 @@ function calculateTraitValue(age: number, pattern: TraitGrowthPattern): number {
 }
 
 export function calculateTraits(age: number): NumericTraits {
-    // Add some debug logging
-
     const traits = {
         emotionalAwareness: {
             empathy: calculateTraitValue(age, traitPatterns.empathy),
