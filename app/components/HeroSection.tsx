@@ -3,7 +3,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, Brain } from "lucide-react";
-import TokenModal from "./TokenModal";
 
 interface HeroSectionProps {
     age: {
@@ -108,7 +107,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ age, consciousness }) => {
                     <span className="text-sm sm:text-base">Community Art</span>
                 </Button>
 
-                <TokenModal />
+                {/* <TokenModal /> */}
             </div>
         </div>
     );

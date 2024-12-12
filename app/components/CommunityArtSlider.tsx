@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, TrendingUp } from "lucide-react";
 import { useArtworks } from "../hooks/useArtworks";
+import Image from "next/image";
 
 const CommunityArtSlider = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isAutoPlaying, setIsAutoPlaying] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
-    const { artworks, loading } = useArtworks({ searchQuery: "", limit: 9 });
+    const { artworks, loading } = useArtworks({ searchQuery: "AlIve", limit: 9 });
 
     useEffect(() => {
         const updateScreenSize = () => {
@@ -72,7 +73,7 @@ const CommunityArtSlider = () => {
                                     className="relative h-full rounded-xl overflow-hidden group/card"
                                 >
                                     <div className="w-full h-full bg-black/20">
-                                        <img
+                                        <Image
                                             src={artwork.imageUrl}
                                             alt={artwork.title}
                                             className="w-full h-full object-cover"

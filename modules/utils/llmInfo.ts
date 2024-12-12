@@ -7,6 +7,8 @@ export const LLM_MODELS = {
     ANTHROPIC_CLAUDE_3_5_HAIKU_NEW: "claude-3-5-haiku-20241022",
     GEMINI_1_5_FLASH: "gemini-1.5-flash",
     HYPERBOLIC_META_LLAMA_3_1_405B_INSTRUCT: "meta-llama/Meta-Llama-3.1-405B-Instruct",
+    HYPERBOLIC_META_LLAMA_3_1_8B_INSTRUCT: "meta-llama/Meta-Llama-3.1-8B-Instruct",
+    HYPERBOLIC_META_LLAMA_3_3_70B_INSTRUCT: "meta-llama/Llama-3.3-70B-Instruct",
 };
 
 export const LLMS = [
@@ -65,7 +67,21 @@ export const LLMS = [
     // Hyperbolic
     {
         model: LLM_MODELS.HYPERBOLIC_META_LLAMA_3_1_405B_INSTRUCT,
-        inputCost: 0.1,
+        inputCost: 4,
+        outputCost: 0.1,
+        maxInputTokens: 200000, //200000,
+        maxOutputTokens: 4096,
+    },
+    {
+        model: LLM_MODELS.HYPERBOLIC_META_LLAMA_3_1_8B_INSTRUCT,
+        inputCost: 0.4,
+        outputCost: 0.1,
+        maxInputTokens: 200000, //200000,
+        maxOutputTokens: 4096,
+    },
+    {
+        model: LLM_MODELS.HYPERBOLIC_META_LLAMA_3_3_70B_INSTRUCT,
+        inputCost: 0.4,
         outputCost: 0.1,
         maxInputTokens: 200000, //200000,
         maxOutputTokens: 4096,

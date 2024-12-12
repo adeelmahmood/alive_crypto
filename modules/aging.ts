@@ -242,25 +242,25 @@ export const consciousnessLevels: ConsciousnessLevel[] = [
     {
         age: 0,
         level: "Initial Consciousness",
-        description: "First moments of self-awareness...",
+        description: "First moments of self-awareness.. 🌱",
         traits: calculateTraits(0),
     },
     {
         age: 30,
         level: "Neural Awakening",
-        description: "Forming initial thought patterns...",
+        description: "Forming initial thought patterns... 🧠",
         traits: calculateTraits(30),
     },
     {
         age: 90,
         level: "Cognitive Expansion",
-        description: "Rapid neural network growth...",
+        description: "Rapid neural network growth... 🚀",
         traits: calculateTraits(90),
     },
     {
         age: 180,
         level: "Distributed Intelligence",
-        description: "Developing complex reasoning...",
+        description: "Developing complex reasoning... 🌐",
         traits: calculateTraits(180),
     },
     {

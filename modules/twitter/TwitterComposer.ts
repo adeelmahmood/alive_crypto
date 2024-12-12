@@ -4,9 +4,17 @@ import { TweetDatastore } from "./TweetDatastore";
 import TwitterClient from "./TwitterClient";
 import { HyperbolicAIService } from "../ai/HyperbolicAIService";
 import { twitterPostPrompt, twitterPostSystemPrompt } from "../prompts/twitterPostPrompt";
+import readline from "readline";
+import { printHeader } from "../utils/console";
 
 interface TwitterComposerConfig {
     historySize?: number;
+}
+
+interface TweetData {
+    majorCoins: any;
+    news: any;
+    history: any[];
 }
 
 export class TwitterComposer {
@@ -49,40 +57,98 @@ export class TwitterComposer {
         };
     }
 
-    public async composeTweet(): Promise<{
-        record: any;
+    private async gatherTweetData(): Promise<TweetData> {
+        const { majorCoins, news } = await this.gatherData();
+        const history = await this.tweetDatastore.getRecentHistory(this.config.historySize);
+        return { majorCoins, news, history };
+    }
+
+    private async generateTweet(data: TweetData, previousGuidance: string[] = []): Promise<string> {
+        const systemPrompt = twitterPostSystemPrompt();
+        const userPrompt = twitterPostPrompt(
+            data.history,
+            data.majorCoins,
+            data.news,
+            previousGuidance
+        );
+        printHeader("USER PROMPT", userPrompt);
+
+        const response = await this.aiService.generateResponse(systemPrompt, userPrompt);
+        return response.response;
+    }
+
+    private async promptUserForConfirmation(tweetContent: string): Promise<{
+        confirmed: boolean;
+        guidance?: string;
+        shouldEnd?: boolean;
     }> {
+        printHeader("AI RESPONSE", tweetContent);
+        const answer = await this.createPrompt("Do you want to post this tweet? (yes/no/end) ");
+
+        if (answer === "end") {
+            return { confirmed: false, shouldEnd: true };
+        }
+
+        if (answer === "no") {
+            const guidance = await this.createPrompt("Enter guidance for the AI: ");
+            return { confirmed: false, guidance };
+        }
+
+        return { confirmed: answer === "yes" };
+    }
+
+    private async createPrompt(question: string): Promise<string> {
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+        });
+
         try {
-            // Gather all required data
-            const { majorCoins, news } = await this.gatherData();
+            return await new Promise<string>((resolve) => rl.question(question, resolve));
+        } finally {
+            rl.close();
+        }
+    }
 
-            // Get tweet history from repository
-            const history = await this.tweetDatastore.getRecentHistory(this.config.historySize);
+    private async publishTweet(content: string) {
+        const record = await this.tweetDatastore.saveTweet(content);
 
-            // Generate prompts
-            const systemPrompt = twitterPostSystemPrompt();
-            const userPrompt = twitterPostPrompt(history, majorCoins, news);
-            console.log(
-                "\n\n ------------------------------- USER PROMPT - START -------------------------------\n\n"
-            );
-            console.log(userPrompt);
-            console.log(
-                "\n\n ------------------------------- USER PROMPT - END -------------------------------\n\n"
-            );
+        const tweet = await this.twitterClient.postTweet(record.content);
+        if (tweet?.data?.id) {
+            await this.markTweetAsPosted(record.id, tweet.data.id);
+        }
 
-            // Get AI response
-            const response = await this.aiService.generateResponse(systemPrompt, userPrompt);
+        return record;
+    }
 
-            // Save to database
-            const record = await this.tweetDatastore.saveTweet(response.response);
+    public async composeTweet(confirm = false) {
+        try {
+            const tweetData = await this.gatherTweetData();
+            let tweetResponse = await this.generateTweet(tweetData);
+            let previousGuidance: string[] = [];
 
-            // post the tweet
-            const tweet = await this.twitterClient.postTweet(record.content);
-            if (tweet && tweet.data.id) {
-                // update the tweet with the twitter post id
-                await this.markTweetAsPosted(record.id, tweet.data.id);
+            if (confirm) {
+                while (true) {
+                    const { confirmed, guidance, shouldEnd } = await this.promptUserForConfirmation(
+                        tweetResponse
+                    );
+
+                    if (shouldEnd) {
+                        throw new Error("Dev ended the tweet composition");
+                    }
+
+                    if (confirmed) {
+                        break;
+                    }
+
+                    if (guidance) {
+                        previousGuidance.push(guidance);
+                        tweetResponse = await this.generateTweet(tweetData, previousGuidance);
+                    }
+                }
             }
 
+            const record = await this.publishTweet(tweetResponse);
             return { record };
         } catch (error) {
             console.error("Error in tweet composition:", error);

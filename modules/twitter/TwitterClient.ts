@@ -88,6 +88,17 @@ class TwitterClient {
             throw error;
         }
     }
+
+    async checkRateLimit() {
+        try {
+            const rateLimit = await this.rClient.v1.get("application/rate_limit_status.json", {
+                resources: "statuses",
+            });
+            console.log(rateLimit.resources.statuses);
+        } catch (error) {
+            console.error("Error checking rate limit:", error);
+        }
+    }
 }
 
 export default TwitterClient;

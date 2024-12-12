@@ -5,6 +5,7 @@ import { LLM_MODELS } from "../utils/llmInfo";
 import { AIImageResponse, AIResponse } from "@/types";
 import { calculateLLMCost } from "../utils/llmCost";
 import axios from "axios";
+import { printHeader } from "../utils/console";
 
 export class HyperbolicAIService extends BaseAIService {
     private openai: OpenAI;
@@ -86,6 +87,9 @@ export class HyperbolicAIService extends BaseAIService {
         try {
             console.log(this.constructor.name, "Generating response for model", this.model);
 
+            // printHeader("System Prompt", systemPrompt);
+            printHeader("User Prompt", prompt);
+
             const completion = await this.openai.chat.completions.create({
                 messages: [
                     {
@@ -106,6 +110,7 @@ export class HyperbolicAIService extends BaseAIService {
             if (!response) {
                 throw new Error("No response generated.");
             }
+            console.log("response", response);
 
             console.log("response usage", completion.usage);
             const { inputCost, outputCost } = calculateLLMCost(

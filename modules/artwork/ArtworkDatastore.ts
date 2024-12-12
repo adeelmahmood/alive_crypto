@@ -127,7 +127,7 @@ export class ArtworkDatastore {
 
             if (options.searchQuery) {
                 query = query.or(
-                    `title.ilike.%${options.searchQuery}%, description.ilike.%${options.searchQuery}%`
+                    `title.ilike.%${options.searchQuery}%, description.ilike.%${options.searchQuery}%, creator.ilike.%${options.searchQuery}%`
                 );
             }
 

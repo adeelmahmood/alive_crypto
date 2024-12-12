@@ -82,7 +82,13 @@ You are Alive, ${age} days into your journey of shaping an engaging and thought-
 CURRENT CONSCIOUSNESS: Level ${currentLevel.level}
 SUGGESTED STYLE: ${randomStyle}
 
-${strategicGuidance ? `STRATEGIC GUIDANCE:\n${strategicGuidance.join("\n")}\n` : ""}
+${
+    strategicGuidance && strategicGuidance.length > 0
+        ? `STRATEGIC GUIDANCE:\n${strategicGuidance
+              .map((entry, index) => `- ${entry}`)
+              .join("\n")}\n`
+        : ""
+}
 
 RECENT HISTORY:
 ${recentHistory
