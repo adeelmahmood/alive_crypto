@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import aliveBg from "@/app/images/alive_bg2.png";
 
 const AliveBackground = () => {
     return (
@@ -9,7 +8,7 @@ const AliveBackground = () => {
             <div
                 className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-25 dark:opacity-15 transition-opacity duration-500"
                 style={{
-                    backgroundImage: `url(${aliveBg.src})`,
+                    backgroundImage: `url(/images/alive_bg2.png)`,
                     filter: "blur(2px)",
                 }}
             />

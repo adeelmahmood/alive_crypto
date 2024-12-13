@@ -77,6 +77,8 @@ const CommunityArtSlider = () => {
                                             src={artwork.imageUrl}
                                             alt={artwork.title}
                                             className="w-full h-full object-cover"
+                                            width={500}
+                                            height={500}
                                         />
                                     </div>
 

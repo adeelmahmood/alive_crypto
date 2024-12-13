@@ -1,7 +1,6 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { ArrowRightCircle, Rocket, Sparkles } from "lucide-react";
-import ludum from "@/app/images/ludum.png";
 import {
     AlertDialog,
     AlertDialogContent,
@@ -10,9 +9,20 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import Image from "next/image";
 
 const TokenShowcase = () => {
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const [videoError, setVideoError] = useState(false);
+
+    useEffect(() => {
+        if (videoRef.current) {
+            videoRef.current.play().catch((error) => {
+                console.log("Video playback error:", error);
+                setVideoError(true);
+            });
+        }
+    }, []);
+
     return (
         <div className="container mx-auto px-4 mb-12">
             <div className="text-center mb-16">
@@ -27,15 +37,38 @@ const TokenShowcase = () => {
 
             <Card className="bg-amber-800/30 dark:bg-purple-950/30 backdrop-blur-sm border-0 overflow-hidden max-w-5xl mx-auto shadow-2xl">
                 <div className="grid md:grid-cols-2 gap-0">
-                    {/* Image Section with enhanced styling */}
+                    {/* Media Section with enhanced styling */}
                     <div className="relative h-96 md:h-auto">
                         <div className="absolute inset-0 m-6 md:m-8 group">
                             <div className="absolute inset-0 bg-gradient-to-r from-amber-500/20 to-amber-800/20 dark:from-purple-500/20 dark:to-purple-800/20 rounded-lg z-10 group-hover:opacity-0 transition-opacity duration-300" />
-                            <Image
-                                src={ludum.src}
-                                alt="Ludum Token"
-                                className="object-cover w-full h-full rounded-lg transform transition-transform duration-300 group-hover:scale-105"
-                            />
+
+                            {videoError ? (
+                                // Fallback Image
+                                <img
+                                    src="/images/ludum.png"
+                                    alt="Ludum Token"
+                                    className="absolute inset-0 w-full h-full object-cover rounded-lg transform transition-transform duration-300 group-hover:scale-105"
+                                />
+                            ) : (
+                                // Video Player
+                                <div className="relative w-full h-full rounded-lg overflow-hidden">
+                                    <video
+                                        ref={videoRef}
+                                        className="absolute inset-0 w-full h-full object-cover rounded-lg"
+                                        autoPlay
+                                        loop
+                                        muted
+                                        playsInline
+                                        onError={() => setVideoError(true)}
+                                    >
+                                        <source
+                                            // Note: Video should be placed in the public directory
+                                            src="/videos/ludum-intro.mp4"
+                                            type="video/mp4"
+                                        />
+                                    </video>
+                                </div>
+                            )}
                         </div>
                     </div>
 
