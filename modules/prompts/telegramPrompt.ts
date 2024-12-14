@@ -59,6 +59,8 @@ Core guidelines:
 <response>
 <message>Your message following the instructions</message>
 </response>
+
+Respond in this XML format.
 `;
 }
 
@@ -74,5 +76,7 @@ Core guidelines:
 <response>
 <message>Your message promoting Ludum</message> 
 </response>
+
+Respond in this XML format.
 `;
 }
