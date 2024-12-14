@@ -75,7 +75,7 @@ export class TelegramService {
         try {
             console.log("Setting up Telegram webhook at URL:", this.config.webhookUrl);
             const response = await axios.post(`${this.baseUrl}/setWebhook`, {
-                url: this.config.webhookUrl,
+                url: `https://${this.config.webhookUrl}`,
                 allowed_updates: ["message"],
                 secret_token: process.env.TELEGRAM_WEBHOOK_SECRET,
             });
