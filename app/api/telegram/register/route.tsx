@@ -1,7 +1,7 @@
 import { TelegramService } from "@/modules/telegram/TelegramService";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
     // Make sure the request is authorized
     const authHeader = req.headers.get("authorization");
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
