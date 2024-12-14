@@ -66,7 +66,7 @@ Respond in this XML format.
 
 export function telegramPromoPrompt(): string {
     return `
-Create a promotional message for the Ludum token. Also say something completely new and unique that you've never said before. It can be about any topic, as long as it's original and interesting.
+Create a promotional message for the Ludum token. Also say something completely random unrelated to the promo. Say whatever you want, but make sure it's something you've never said before.
 
 Core guidelines:
 - Keep it casual and conversational
@@ -74,7 +74,7 @@ Core guidelines:
 - No financial advice or price predictions
 
 <response>
-<message>Your message promoting Ludum</message> 
+<message>Your message promoting Ludum.. btw here's something random</message>
 </response>
 
 Respond in this XML format.
