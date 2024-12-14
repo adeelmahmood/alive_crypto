@@ -1,14 +1,13 @@
-import { ConversationService } from "@/modules/telegram/ConversationService";
 import { TelegramService } from "@/modules/telegram/TelegramService";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-    // Verify webhook secret
-    const secretToken = req.headers.get("x-telegram-bot-api-secret-token");
-
-    if (secretToken !== process.env.TELEGRAM_WEBHOOK_SECRET) {
-        console.error("Invalid secret token");
-        return NextResponse.json({ status: 500 });
+    // Make sure the request is authorized
+    const authHeader = req.headers.get("authorization");
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+        return new Response("Unauthorized", {
+            status: 401,
+        });
     }
 
     try {
@@ -23,8 +22,8 @@ export async function POST(req: NextRequest) {
         console.log("Telegram webhook set up successfully");
 
         // clear conversation history
-        const conversationService = new ConversationService();
-        await conversationService.clearConversationHistory(process.env.TELEGRAM_DEFAULT_CHAT_ID!);
+        // const conversationService = new ConversationService();
+        // await conversationService.clearConversationHistory(process.env.TELEGRAM_DEFAULT_CHAT_ID!);
 
         return NextResponse.json({ response }, { status: 200 });
     } catch (error) {

@@ -4,6 +4,7 @@ import {
     telegramSystemPrompt,
     telegramMessagePrompt,
     telegramPromoPrompt,
+    telegramInstructionsPrompt,
 } from "../prompts/telegramPrompt";
 import { OpenAIService } from "../ai/OpenAIService";
 import { TOKEN_NAME } from "@/constants";
@@ -58,12 +59,15 @@ export class TelegramService {
     private aiService: OpenAIService;
     private conversationService: ConversationService;
 
-    constructor(config: TelegramConfig) {
+    private respondOnlyToMentions;
+
+    constructor(config: TelegramConfig, respondOnlyToMentions = false) {
         this.config = config;
         this.baseUrl = `https://api.telegram.org/bot${config.botToken}`;
 
         this.aiService = new OpenAIService();
         this.conversationService = new ConversationService();
+        this.respondOnlyToMentions = respondOnlyToMentions;
     }
 
     // called at the start of the service to set up the webhook and start message handling
@@ -98,7 +102,10 @@ export class TelegramService {
             });
 
             // Check if the message mentions our bot
-            if (!update.message.entities || !this.mentionsOurBot(update)) {
+            if (
+                this.respondOnlyToMentions &&
+                (!update.message.entities || !this.mentionsOurBot(update))
+            ) {
                 console.log("Message does not mention our bot");
                 return;
             }
@@ -108,7 +115,7 @@ export class TelegramService {
 
             // Generate response based on context
             const response = await this.generateResponse(history);
-            console.log("Generated response:", response);
+            // console.log("Generated response:", response);
 
             if (response) {
                 const sentMessage = await this.sendMessage(response, chatId.toString());
@@ -217,16 +224,17 @@ export class TelegramService {
         return messageContent || null;
     }
 
-    async sendPromoMessage(chatId?: string): Promise<TelegramResponse> {
+    async sendPromoMessage(instructions?: string): Promise<TelegramResponse> {
         const response = await this.aiService.generateResponse(
             telegramSystemPrompt(),
-            telegramPromoPrompt()
+            instructions ? telegramInstructionsPrompt(instructions) : telegramPromoPrompt()
         );
 
         if (!response.response) {
             console.error("Failed to generate promo message");
             return { ok: false, description: "Failed to generate promo message" };
         }
+        console.log("Generated promo message:", response.response);
 
         const messageContent = response.response.match(/<message>([\s\S]*?)<\/message>/)?.[1];
 
@@ -236,7 +244,7 @@ export class TelegramService {
         }
 
         // send promo message
-        return this.sendMessage(messageContent, chatId);
+        return this.sendMessage(messageContent, this.config.defaultChatId);
     }
 
     private mentionsOurBot(update: Update): boolean {

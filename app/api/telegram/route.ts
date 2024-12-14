@@ -8,8 +8,6 @@ const telegramService = new TelegramService({
 });
 
 export async function POST(req: NextRequest) {
-    console.log("Received webhook request");
-
     // Verify webhook secret
     const secretToken = req.headers.get("x-telegram-bot-api-secret-token");
 
@@ -20,7 +18,7 @@ export async function POST(req: NextRequest) {
 
     try {
         const update = await req.json();
-        console.log("Received update:", JSON.stringify(update, null, 2));
+        // console.log("Received update:", JSON.stringify(update, null, 2));
         await telegramService.handleUpdate(update);
 
         return NextResponse.json({ ok: true });

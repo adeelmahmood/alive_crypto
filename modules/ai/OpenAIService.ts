@@ -25,7 +25,7 @@ export class OpenAIService extends BaseAIService {
         }
 
         try {
-            console.log(this.constructor.name, "Generating response for model", this.model);
+            // console.log(this.constructor.name, "Generating response for model", this.model);
 
             const completion = await this.openai.chat.completions.create({
                 messages: [
@@ -42,12 +42,14 @@ export class OpenAIService extends BaseAIService {
                 temperature: 0,
             });
 
-            printHeader("Prompt", prompt);
+            // printHeader("Prompt", prompt);
 
             const response = completion.choices[0]?.message?.content?.trim();
             if (!response) {
                 throw new Error("No response generated.");
             }
+
+            // console.log(chalk.green("Response:"), response);
 
             // console.log("response usage", completion.usage);
             const { inputCost, outputCost } = calculateLLMCost(

@@ -8,18 +8,8 @@ export const telegram = async () => {
     });
 
     try {
-        await telegramService.setWebhook();
-        console.log("Telegram webhook set up successfully");
-
-        // keep running until Ctrl+C is pressed
-        process.stdin.resume();
-
-        process.on("SIGINT", async () => {
-            console.log("Stopping Telegram service");
-            // delete the webhook
-            await telegramService.deleteWebhook();
-            process.exit();
-        });
+        // send promotional message
+        await telegramService.sendPromoMessage("Announce the launch of Ludum token!");
     } catch (error) {
         console.error("Error setting up Telegram webhook:", error);
     }
