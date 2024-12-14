@@ -8,20 +8,30 @@ import { printHeader } from "../utils/console";
 
 export class OpenAIService extends BaseAIService {
     private openai: OpenAI;
+    private useCache: boolean;
 
     constructor(model: string = LLM_MODELS.OPENAI_GPT_4O_MINI) {
         super(model);
         this.openai = new OpenAI();
+
+        this.useCache = process.env.USE_AI_CACHE === "true";
     }
 
     async generateResponse(systemPrompt: string, prompt: string): Promise<AIResponse> {
         const cacheKey = this.getCacheKey(this.model, systemPrompt, prompt);
-        const cachedResponse = await this.getCachedResponse(cacheKey);
-        if (cachedResponse) {
-            console.log(
-                chalk.green(this.constructor.name, "Using cached response for model", this.model)
-            );
-            return cachedResponse;
+
+        if (this.useCache) {
+            const cachedResponse = await this.getCachedResponse(cacheKey);
+            if (cachedResponse) {
+                console.log(
+                    chalk.green(
+                        this.constructor.name,
+                        "Using cached response for model",
+                        this.model
+                    )
+                );
+                return cachedResponse;
+            }
         }
 
         try {
@@ -65,7 +75,9 @@ export class OpenAIService extends BaseAIService {
                 cost: inputCost + outputCost,
             };
 
-            await this.cacheResponse(cacheKey, result);
+            if (this.useCache) {
+                await this.cacheResponse(cacheKey, result);
+            }
             return result;
         } catch (error) {
             console.error("Error generating AI response:", error);
