@@ -4,7 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(req: NextRequest) {
     // Make sure the request is authorized
     const authHeader = req.headers.get("authorization");
+    console.log("Received auth header:", authHeader);
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+        console.error("Unauthorized request");
         return new Response("Unauthorized", {
             status: 401,
         });
