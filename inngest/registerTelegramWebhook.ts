@@ -1,8 +1,8 @@
 import { inngest } from "./client";
 import { TelegramService } from "@/modules/telegram/TelegramService";
 
-export const postTelegramPromo = inngest.createFunction(
-    { id: "post-telegram-promo", retries: 0 },
+export const registerTelegramWebhook = inngest.createFunction(
+    { id: "register-telegram-webhook", retries: 1 },
     { cron: "0 * * * *" }, // Run every hour
 
     async ({ event, step }) => {
@@ -12,8 +12,8 @@ export const postTelegramPromo = inngest.createFunction(
             defaultChatId: process.env.TELEGRAM_DEFAULT_CHAT_ID!,
         });
 
-        // send promo message
-        const response = await telegramService.sendPromoMessage();
+        // Register webhook
+        const response = await telegramService.setWebhook();
         return response;
     }
 );

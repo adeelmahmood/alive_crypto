@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const telegramService = new TelegramService({
     botToken: process.env.TELEGRAM_BOT_TOKEN!,
-    webhookUrl: `${process.env.VERCEL_URL}/api/telegram`,
+    webhookUrl: `${process.env.VERCEL_PROJECT_PRODUCTION_URL}/api/telegram`,
     defaultChatId: process.env.TELEGRAM_DEFAULT_CHAT_ID!,
 });
 
