@@ -10,6 +10,7 @@ const telegramService = new TelegramService({
 export async function POST(req: NextRequest) {
     // Verify webhook secret
     const secretToken = req.headers.get("x-telegram-bot-api-secret-token");
+    console.log("Received secret token:", secretToken?.substring(0, 5));
 
     if (secretToken !== process.env.TELEGRAM_WEBHOOK_SECRET) {
         console.error("Invalid secret token");
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
 
     try {
         const update = await req.json();
-        // console.log("Received update:", JSON.stringify(update, null, 2));
+        console.log("Received update:", JSON.stringify(update, null, 2));
         await telegramService.handleUpdate(update);
 
         return NextResponse.json({ ok: true });
