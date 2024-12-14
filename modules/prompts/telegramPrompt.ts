@@ -69,12 +69,13 @@ export function telegramPromoPrompt(): string {
 Create a promotional message for the Ludum token. Also say something completely random unrelated to the promo. Say whatever you want, but make sure it's something you've never said before.
 
 Core guidelines:
-- Keep it casual and conversational
+- Keep it casual and conversationalx
 - Include #Ludum
 - No financial advice or price predictions
 
 <response>
-<message>Your message promoting Ludum.. btw here's something random</message>
+<message>Your message promoting Ludum</message>
+<random>Something completely random and unrelated, start with BTW or FYI</random>
 </response>
 
 Respond in this XML format.
