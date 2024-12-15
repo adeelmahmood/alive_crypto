@@ -20,7 +20,11 @@ export async function POST(req: NextRequest) {
     try {
         const update = await req.json();
         console.log("Received update:", JSON.stringify(update, null, 2));
-        await telegramService.handleUpdate(update);
+
+        // only handle text messages
+        if (update.message && update.message.text) {
+            await telegramService.handleUpdate(update);
+        }
 
         return NextResponse.json({ ok: true });
     } catch (error) {

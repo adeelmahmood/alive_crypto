@@ -49,7 +49,7 @@ export class OpenAIService extends BaseAIService {
                     },
                 ],
                 model: this.model,
-                temperature: 0,
+                temperature: 1,
             });
 
             // printHeader("Prompt", prompt);

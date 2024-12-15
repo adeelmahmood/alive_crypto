@@ -237,7 +237,6 @@ export class TelegramService {
         console.log("Generated promo message:", response.response);
 
         const messageContent = response.response.match(/<message>([\s\S]*?)<\/message>/)?.[1];
-        const randomContent = response.response.match(/<random>([\s\S]*?)<\/random>/)?.[1];
 
         if (!messageContent) {
             console.error("No message content found in response");
@@ -247,9 +246,10 @@ export class TelegramService {
         // send promo message
         const result = this.sendMessage(messageContent, this.config.defaultChatId);
 
-        // also lets send the random message
-        if (randomContent) {
-            this.sendMessage(randomContent, this.config.defaultChatId);
+        // also lets send the ascii art message
+        const asciiContent = response.response.match(/<ascii>([\s\S]*?)<\/ascii>/)?.[1];
+        if (asciiContent) {
+            this.sendMessage(asciiContent, this.config.defaultChatId);
         }
 
         return result;
