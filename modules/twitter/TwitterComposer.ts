@@ -6,6 +6,7 @@ import { HyperbolicAIService } from "../ai/HyperbolicAIService";
 import { twitterPostPrompt, twitterPostSystemPrompt } from "../prompts/twitterPostPrompt";
 import readline from "readline";
 import { printHeader } from "../utils/console";
+import { OpenAIService } from "../ai/OpenAIService";
 
 interface TwitterComposerConfig {
     historySize?: number;
@@ -20,7 +21,7 @@ interface TweetData {
 export class TwitterComposer {
     private marketDataFetcher: MarketDataFetcher;
     private newsFetcher: CryptoNewsFetcher;
-    private aiService: HyperbolicAIService;
+    private aiService: OpenAIService;
     private tweetDatastore: TweetDatastore;
     private config: TwitterComposerConfig;
     private twitterClient: TwitterClient;
@@ -29,7 +30,7 @@ export class TwitterComposer {
         this.marketDataFetcher = MarketDataFetcher.getInstance();
 
         this.newsFetcher = new CryptoNewsFetcher();
-        this.aiService = new HyperbolicAIService();
+        this.aiService = new OpenAIService();
         this.tweetDatastore = new TweetDatastore();
         this.config = config;
         this.twitterClient = new TwitterClient();
