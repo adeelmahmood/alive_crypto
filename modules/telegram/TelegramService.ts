@@ -268,7 +268,9 @@ export class TelegramService {
         }
 
         // send promo message
-        const result = await this.sendMessage(messageContent, this.config.defaultChatId);
+        const result = await this.sendMessage(messageContent, this.config.defaultChatId, {
+            parseMode: "HTML",
+        });
 
         // grab random artwork from the database
         const artwork = await this.artworkDataStore.getRandomArtwork();
