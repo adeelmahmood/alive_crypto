@@ -8,11 +8,13 @@ import {
 } from "../prompts/telegramPrompt";
 import { OpenAIService } from "../ai/OpenAIService";
 import { TOKEN_NAME } from "@/constants";
+import { ArtworkDatastore } from "../artwork/ArtworkDatastore";
 
 export interface TelegramConfig {
     botToken: string;
     defaultChatId?: string;
     webhookUrl: string;
+    respondOnlyToMentions?: boolean;
 }
 
 export interface MessageOptions {
@@ -40,6 +42,15 @@ export interface Update {
             id: number;
             type: string;
         };
+        reply_to_message?: {
+            from: {
+                id: number;
+                is_bot: boolean;
+                first_name?: string;
+                username?: string;
+            };
+            text: string;
+        };
         text?: string;
         date: number;
         entities?: [
@@ -58,24 +69,26 @@ export class TelegramService {
     private readonly config: TelegramConfig;
     private aiService: OpenAIService;
     private conversationService: ConversationService;
+    private artworkDataStore: ArtworkDatastore;
 
-    private respondOnlyToMentions;
-
-    constructor(config: TelegramConfig, respondOnlyToMentions = false) {
+    constructor(config: TelegramConfig) {
         this.config = config;
         this.baseUrl = `https://api.telegram.org/bot${config.botToken}`;
 
         this.aiService = new OpenAIService();
         this.conversationService = new ConversationService();
-        this.respondOnlyToMentions = respondOnlyToMentions;
+        this.artworkDataStore = new ArtworkDatastore();
     }
 
     // called at the start of the service to set up the webhook and start message handling
     async setWebhook(): Promise<TelegramResponse> {
         try {
-            console.log("Setting up Telegram webhook at URL:", this.config.webhookUrl);
+            const webhookUrl = this.config.webhookUrl.startsWith("https")
+                ? this.config.webhookUrl
+                : `https://${this.config.webhookUrl}`;
+            console.log("Setting up Telegram webhook at URL:", webhookUrl);
             const response = await axios.post(`${this.baseUrl}/setWebhook`, {
-                url: `https://${this.config.webhookUrl}`,
+                url: webhookUrl,
                 allowed_updates: ["message"],
                 secret_token: process.env.TELEGRAM_WEBHOOK_SECRET,
             });
@@ -103,7 +116,7 @@ export class TelegramService {
 
             // Check if the message mentions our bot
             if (
-                this.respondOnlyToMentions &&
+                this.config.respondOnlyToMentions &&
                 (!update.message.entities || !this.mentionsOurBot(update))
             ) {
                 console.log("Message does not mention our bot");
@@ -114,7 +127,7 @@ export class TelegramService {
             const history = await this.conversationService.getConversationHistory(chatId);
 
             // Generate response based on context
-            const response = await this.generateResponse(history);
+            const response = await this.generateResponse(history, update.message.reply_to_message);
             // console.log("Generated response:", response);
 
             if (response) {
@@ -192,18 +205,29 @@ export class TelegramService {
         }
     }
 
-    private async generateResponse(history: ChatMessage[]): Promise<string | null> {
+    private async generateResponse(
+        history: ChatMessage[],
+        replyToMessage?: any
+    ): Promise<string | null> {
         // Format conversation history for the AI
-        const formattedHistory = history
-            .map((msg) => {
-                const prefix = `[${msg.sender.name}]`;
-                return `${prefix}: ${msg.text}`;
-            })
-            .join("\n");
+        const formattedHistory = history.map((msg) => {
+            const prefix = `[${msg.sender.name}]`;
+            return `${prefix}: ${msg.text}`;
+        });
+
+        // if we are replying
+        const replyToMessageText = replyToMessage?.text;
+        if (replyToMessageText) {
+            formattedHistory.push(
+                `\n\nReply to this message: [${
+                    replyToMessage.from.first_name || replyToMessage.from.username
+                }]: ${replyToMessageText}`
+            );
+        }
 
         const response = await this.aiService.generateResponse(
             telegramSystemPrompt(),
-            telegramMessagePrompt(formattedHistory)
+            telegramMessagePrompt(formattedHistory.join("\n"))
         );
 
         if (!response.response) {
@@ -234,7 +258,7 @@ export class TelegramService {
             console.error("Failed to generate promo message");
             return { ok: false, description: "Failed to generate promo message" };
         }
-        console.log("Generated promo message:", response.response);
+        // console.log("Generated promo message:", response.response);
 
         const messageContent = response.response.match(/<message>([\s\S]*?)<\/message>/)?.[1];
 
@@ -244,12 +268,13 @@ export class TelegramService {
         }
 
         // send promo message
-        const result = this.sendMessage(messageContent, this.config.defaultChatId);
+        const result = await this.sendMessage(messageContent, this.config.defaultChatId);
 
-        // also lets send the ascii art message
-        const asciiContent = response.response.match(/<ascii>([\s\S]*?)<\/ascii>/)?.[1];
-        if (asciiContent) {
-            this.sendMessage(asciiContent, this.config.defaultChatId);
+        // grab random artwork from the database
+        const artwork = await this.artworkDataStore.getRandomArtwork();
+        if (artwork) {
+            const caption = `${artwork.title} by ${artwork.creator}`;
+            await this.sendPhoto(artwork.imageUrl, this.config.defaultChatId, caption);
         }
 
         return result;

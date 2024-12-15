@@ -21,6 +21,11 @@ export async function POST(req: NextRequest) {
         const update = await req.json();
         console.log("Received update:", JSON.stringify(update, null, 2));
 
+        // only handle human messages
+        if (update.message && update.message.from && update.message.from.is_bot) {
+            return NextResponse.json({ ok: true });
+        }
+
         // only handle text messages
         if (update.message && update.message.text) {
             await telegramService.handleUpdate(update);

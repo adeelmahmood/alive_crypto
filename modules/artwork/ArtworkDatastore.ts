@@ -161,6 +161,21 @@ export class ArtworkDatastore {
         }
     }
 
+    public async getRandomArtwork(): Promise<Artwork> {
+        try {
+            const { data, error } = await this.supabase.rpc("get_random_artwork").single();
+
+            if (error) {
+                throw new Error(`Database error: ${error.message}`);
+            }
+
+            return this.transformDatabaseArtwork(data);
+        } catch (error) {
+            console.error("Error retrieving random artwork:", error);
+            throw error;
+        }
+    }
+
     public async getVisitorLikedArtworkIds(visitorId: string): Promise<number[]> {
         const { data, error } = await this.supabase
             .from("artwork_likes")

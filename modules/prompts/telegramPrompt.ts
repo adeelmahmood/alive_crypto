@@ -1,4 +1,4 @@
-import { BIRTH_DATE, getCurrentConsciousnessLevel, getDayAge } from "../aging";
+import { BIRTH_DATE, getDayAge } from "../aging";
 
 export function telegramSystemPrompt(): string {
     const age = getDayAge();
@@ -66,48 +66,29 @@ Respond in this XML format.
 
 export function telegramPromoPrompt(): string {
     return `
-Create a promotional message for the Ludum token and complement it with some ASCII art. The ASCII art should be crypto-themed (like rockets, moons, diamonds, blockchain patterns, etc.) but keep it small and simple enough to display well in Telegram.
+Create a promotional message for the Ludum token.
 
 Core guidelines:
 - Keep it casual and conversational
-- Include #Ludum
+- Include #Ludum (wrap hashtag in <b> tags)
 - No financial advice or price predictions
-- ASCII art should be max 8-10 lines tall
-- Use simple ASCII patterns that won't break in message formatting
+- Format links using HTML: <a href="url">text</a>
+- Use proper paragraph spacing with line breaks
+- Use these HTML tags for formatting:
+    - Bold: <b>text</b>
+    - Italic: <i>text</i>
+    - Links: <a href="url">text</a>
+- Include the following links:
+    - Website: https://alive-crypto.vercel.app/
+    - Twitter: https://x.com/CryptoaliveXyz    
+    - Community Artwork: https://alive-crypto.vercel.app/community (anyone can create)
 
 Important: Always make sure to say in promo message that nothing here should be considered financial advice!
 
 <response>
 <message>Your message promoting Ludum</message>
-<ascii>Your crypto-themed ASCII art. Could be moon, rocket, diamond, blockchain, or any other creative crypto-related pattern. Keep it simple and clean.</ascii>
 </response>
 
-Example ASCII art patterns (for reference, create your own variations):
-
-   🌙
-  /
- /
-|   To the
-|   moon!
- \\
-  \\
-
-or
-
-  ⬡ ⬡ ⬡
- / / / /
-⬡ ⬡ ⬡
-\\ \\ \\ \\
- ⬡ ⬡ ⬡
-
-or
-
-   ⬨
-  ⬨ ⬨
- ⬨   ⬨
-  ⬨ ⬨
-   ⬨
-
-Respond in this XML format.
+Respond in this XML format with HTML formatting.
 `;
 }

@@ -8,7 +8,8 @@ export const telegram = async () => {
     });
 
     try {
-        await telegramService.sendPromoMessage();
+        const result = await telegramService.sendPromoMessage();
+        console.log("Telegram promo message sent successfully:", result);
     } catch (error) {
         console.error("Error setting up Telegram webhook:", error);
     }
