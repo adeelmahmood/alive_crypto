@@ -3,7 +3,8 @@ import { TelegramService } from "@/modules/telegram/TelegramService";
 
 export const postTelegramPromo = inngest.createFunction(
     { id: "post-telegram-promo", retries: 0 },
-    { cron: "0 * * * *" }, // Run every hour
+    // Run every 6 hours
+    { cron: "0 */6 * * *" },
 
     async ({ event, step }) => {
         const telegramService = new TelegramService({
