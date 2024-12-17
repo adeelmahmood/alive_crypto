@@ -1,14 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { ArrowRightCircle, Rocket, Sparkles } from "lucide-react";
-import {
-    AlertDialog,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { ArrowRightCircle, Sparkles } from "lucide-react";
 
 const TokenShowcase = () => {
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -91,27 +83,14 @@ const TokenShowcase = () => {
                             </p>
 
                             <div className="flex items-center">
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <button className="inline-flex items-center px-6 py-3 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 dark:bg-purple-500/20 dark:hover:bg-purple-500/30 text-amber-200 dark:text-purple-200 font-semibold transition-all duration-300 border border-amber-200/20 dark:border-purple-200/20 group">
-                                            Buy Ludum
-                                            <ArrowRightCircle className="ml-2 h-5 w-5 transform transition-transform group-hover:translate-x-1" />
-                                        </button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent className="bg-amber-800/90 dark:bg-purple-950/90 backdrop-blur-sm border-amber-200/20 dark:border-purple-200/20">
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle className="flex items-center gap-2 text-amber-200 dark:text-purple-200">
-                                                <Rocket className="h-5 w-5" />
-                                                Launch Coming Soon
-                                            </AlertDialogTitle>
-                                            <AlertDialogDescription className="text-white/80">
-                                                The Ludum token is preparing for launch. Join our
-                                                community to be the first to know when it&apos;s
-                                                available.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                    </AlertDialogContent>
-                                </AlertDialog>
+                                <a
+                                    target="_blank"
+                                    href="https://pump.fun/coin/DBqjsf8jWpRQiMsGYUFM1sF42S8zf6pSNkRdC2Cxpump"
+                                    className="inline-flex items-center px-6 py-3 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 dark:bg-purple-500/20 dark:hover:bg-purple-500/30 text-amber-200 dark:text-purple-200 font-semibold transition-all duration-300 border border-amber-200/20 group"
+                                >
+                                    Buy Ludum
+                                    <ArrowRightCircle className="ml-2 h-5 w-5 transform transition-transform group-hover:translate-x-1" />
+                                </a>
                             </div>
                         </div>
                     </div>
