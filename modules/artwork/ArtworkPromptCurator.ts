@@ -38,6 +38,7 @@ export class ArtworkPromptCurator {
         try {
             // Clean up XML and extract values
             const cleanXml = xml.replace(/>\s+</g, "><");
+
             const title = this.sanitizeXmlValue(
                 cleanXml.match(/<title>([\s\S]*?)<\/title>/)?.[1] || ""
             );

@@ -8,7 +8,7 @@ interface UseArtworksProps {
     limit?: number;
 }
 
-export function useArtworks({ searchQuery, marketMood, limit = 50 }: UseArtworksProps = {}) {
+export function useArtworks({ searchQuery, marketMood, limit = 48 }: UseArtworksProps = {}) {
     const [artworks, setArtworks] = useState<Artwork[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

@@ -114,7 +114,9 @@ export class TwitterComposer {
     private async publishTweet(content: string) {
         const record = await this.tweetDatastore.saveTweet(content);
 
+        console.log(">>> Posting tweet:", content);
         const tweet = await this.twitterClient.postTweet(record.content);
+        console.log("Tweet posted:", tweet);
         if (tweet?.data?.id) {
             await this.markTweetAsPosted(record.id, tweet.data.id);
         }
