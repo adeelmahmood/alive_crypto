@@ -131,7 +131,9 @@ export class TelegramService {
             // console.log("Generated response:", response);
 
             if (response) {
-                const sentMessage = await this.sendMessage(response, chatId.toString());
+                const sentMessage = await this.sendMessage(response, chatId.toString(), {
+                    replyToMessageId: update.message.message_id,
+                });
 
                 // Store bot's response if sent successfully
                 if (sentMessage.ok && sentMessage.result) {
