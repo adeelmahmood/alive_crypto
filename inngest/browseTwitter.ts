@@ -14,11 +14,11 @@ const twitterBot = new TwitterBot({
 const timelinePullCount = 20;
 const maxInOneGo = 5;
 const minDelaySeconds = 10; // Minimum delay in seconds (1 minute)
-const maxDelaySeconds = 120; // Maximum delay in seconds (5 minutes)
+const maxDelaySeconds = 60; // Maximum delay in seconds (5 minutes)
 
 // Initialize browser and perform browsing
 export const browsePosts = inngest.createFunction(
-    { id: "browse-posts", retries: 0 },
+    { id: "browse-posts", retries: 0, concurrency: 1 },
     // { cron: "*/15 * * * *" }, // Every 15 minutes
     { event: "twitter/browse-posts" },
     async ({ event, step }) => {
@@ -76,49 +76,60 @@ export const browsePosts = inngest.createFunction(
 
 // Engage with a post
 export const engagePost = inngest.createFunction(
-    { id: "engage-post", retries: 0 },
+    { id: "engage-post", retries: 0, concurrency: 1 },
     { event: "twitter/engage.post" },
     async ({ event, step }) => {
         const { post } = event.data;
+        let maxRetries = 3;
+        let currentTry = 0;
 
-        try {
-            // Generate a random delay within the range
-            const delaySeconds =
-                Math.floor(Math.random() * (maxDelaySeconds - minDelaySeconds + 1)) +
-                minDelaySeconds;
-            console.log(
-                `Waiting for ${delaySeconds} seconds before engagement with ${post.authorHandle}`
-            );
-
-            // Sleep for the calculated delay in seconds
-            await step.sleep("random-delay", `${delaySeconds} seconds`);
-
-            // Initialize browser
-            await step.run("init-browser", async () => {
-                await twitterBot.init(true, 500);
-            });
-
-            // Engage with the post in separate step
-            await step.run("engage", async () => {
+        while (currentTry < maxRetries) {
+            try {
+                // Generate a random delay
+                const delaySeconds =
+                    Math.floor(Math.random() * (maxDelaySeconds - minDelaySeconds + 1)) +
+                    minDelaySeconds;
                 console.log(
-                    `Starting engagement with ${post.authorHandle} at ${new Date().toISOString()}`
+                    `Waiting for ${delaySeconds} seconds before engagement with ${post.authorHandle}`
                 );
 
-                // Navigate to post
-                const postUrl = `https://x.com/${post.authorHandle}/status/${post.tweetId}`;
-                await twitterBot.goToPage(postUrl);
+                await step.sleep("random-delay", `${delaySeconds} seconds`);
+
+                // Initialize browser
+                await step.run("init-browser", async () => {
+                    await twitterBot.init(true, 500);
+                });
 
                 // Engage with the post
-                const result = await twitterBot.engageWithPost(post);
+                const action = await step.run("engage", async () => {
+                    console.log(
+                        `Starting engagement with ${
+                            post.authorHandle
+                        } at ${new Date().toISOString()}`
+                    );
 
+                    // Navigate to post with timeout
+                    const postUrl = `https://x.com/${post.authorHandle}/status/${post.tweetId}`;
+                    await twitterBot.goToPage(postUrl);
+
+                    return await twitterBot.engageWithPost(post);
+                });
+
+                // If we get here, engagement was successful
+                await twitterBot.close();
+                return action;
+            } catch (error) {
+                console.error(`Error in engagement process (attempt ${currentTry + 1}):`, error);
+                // Always try to close the browser on error
                 await twitterBot.close();
 
-                return result;
-            });
-        } catch (error) {
-            console.error("Error in engagement process:", error);
-            await twitterBot.close();
-            throw error;
+                currentTry++;
+                if (currentTry >= maxRetries) {
+                    throw error; // Re-throw if we've exhausted retries
+                }
+                // Wait before retrying
+                await step.sleep("retry-delay", "30 seconds");
+            }
         }
     }
 );

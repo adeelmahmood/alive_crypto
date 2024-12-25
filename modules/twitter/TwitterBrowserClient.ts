@@ -4,6 +4,7 @@ import { Redis } from "@upstash/redis";
 class TwitterBrowserClient {
     private browser: Browser | null = null;
     private page: Page | null = null;
+
     private delay: number;
     private cookieKey: string;
 
@@ -24,6 +25,18 @@ class TwitterBrowserClient {
     }
 
     async init(headless = false, slowMo = 100) {
+        // Check if browser is already initialized
+        if (this.browser && this.page) {
+            try {
+                // Test if the browser is still responsive
+                await this.page.evaluate(() => true);
+                return; // Browser is still good to use
+            } catch (e) {
+                // Browser is not responsive, close it properly
+                await this.close();
+            }
+        }
+
         console.log("Initializing browser...");
         this.browser = await chromium.launch({
             headless,
@@ -265,11 +278,15 @@ class TwitterBrowserClient {
 
     async close() {
         if (this.browser) {
-            console.log("Closing browser...");
-            await this.browser.close();
-            this.browser = null;
-            this.page = null;
-            console.log("Browser closed");
+            try {
+                console.log("Closing browser...");
+                await this.browser.close();
+            } catch (e) {
+                console.error("Error closing browser:", e);
+            } finally {
+                this.browser = null;
+                this.page = null;
+            }
         }
     }
 }
