@@ -1,6 +1,6 @@
 import { HyperbolicAIService } from "../ai/HyperbolicAIService";
 import { twitterImageSystemPrompt, twitterImagePrompt } from "../prompts/twitterImagePrompt";
-import TwitterClient from "../twitter/TwitterClient";
+import TwitterApiClient from "../twitter/TwitterApiClient";
 import { ArtworkDatastore } from "./ArtworkDatastore";
 import { ArtworkGenerator } from "./ArtworkGenerator";
 import { ArtworkPromptCurator } from "./ArtworkPromptCurator";
@@ -10,7 +10,7 @@ export class AliveArtworkGenerator {
     private aiService: HyperbolicAIService;
     private curator: ArtworkPromptCurator;
     private gen: ArtworkGenerator;
-    private twitter: TwitterClient;
+    private twitter: TwitterApiClient;
 
     constructor() {
         this.datastore = new ArtworkDatastore();
@@ -19,7 +19,7 @@ export class AliveArtworkGenerator {
         this.curator = new ArtworkPromptCurator();
         this.gen = new ArtworkGenerator();
 
-        this.twitter = new TwitterClient();
+        this.twitter = new TwitterApiClient();
     }
 
     async generateArtwork() {

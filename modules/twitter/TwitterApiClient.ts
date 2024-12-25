@@ -1,7 +1,6 @@
-import { TweetRecord } from "@/types";
 import { TwitterApi, TwitterApiReadWrite, TwitterApiReadOnly } from "twitter-api-v2";
 
-class TwitterClient {
+class TwitterApiClient {
     private rwClient: TwitterApiReadWrite;
     private rClient: TwitterApiReadOnly;
 
@@ -20,7 +19,8 @@ class TwitterClient {
 
     async postTweetWithImage(
         text: string,
-        imageBuffer: Buffer
+        imageBuffer: Buffer,
+        replyToTweetId?: string
     ): Promise<{ data: { id: string } } | undefined> {
         try {
             // Step 1: Upload the media using v1 API
@@ -29,6 +29,15 @@ class TwitterClient {
             });
 
             // Step 2: Create tweet with media using v2 API
+            if (replyToTweetId) {
+                const tweet = await this.rwClient.v2.tweet(text, {
+                    media: {
+                        media_ids: [mediaId],
+                    },
+                    reply: { in_reply_to_tweet_id: replyToTweetId },
+                });
+                return tweet;
+            }
             const tweet = await this.rwClient.v2.tweet(text, {
                 media: {
                     media_ids: [mediaId],
@@ -56,6 +65,26 @@ class TwitterClient {
         }
     }
 
+    async likeTweet(tweetId: string) {
+        try {
+            const loggedUserId = await this.getAuthenticatedUserId();
+            return await this.rwClient.v2.like(loggedUserId, tweetId);
+        } catch (error) {
+            console.error("Error liking tweet:", error);
+            throw error;
+        }
+    }
+
+    async retweetTweet(tweetId: string) {
+        try {
+            const loggedUserId = await this.getAuthenticatedUserId();
+            return await this.rwClient.v2.retweet(loggedUserId, tweetId);
+        } catch (error) {
+            console.error("Error retweeting tweet:", error);
+            throw error;
+        }
+    }
+
     async getTimeline(userId?: string, maxResults: number = 100) {
         try {
             const tweets = await this.rClient.v2.userTimeline(
@@ -74,7 +103,6 @@ class TwitterClient {
 
     private async getAuthenticatedUserId(): Promise<string> {
         const user = await this.rwClient.v2.me();
-        console.log("User:", user);
         return user.data.id;
     }
 
@@ -101,4 +129,4 @@ class TwitterClient {
     }
 }
 
-export default TwitterClient;
+export default TwitterApiClient;

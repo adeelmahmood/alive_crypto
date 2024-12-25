@@ -1,12 +1,11 @@
 import MarketDataFetcher from "@/modules/crypto/MarketDataFetcher";
 import CryptoNewsFetcher from "@/modules/news/CryptoNewsFetcher";
 import { TweetDatastore } from "./TweetDatastore";
-import TwitterClient from "./TwitterClient";
-import { HyperbolicAIService } from "../ai/HyperbolicAIService";
 import { twitterPostPrompt, twitterPostSystemPrompt } from "../prompts/twitterPostPrompt";
 import readline from "readline";
 import { printHeader } from "../utils/console";
 import { OpenAIService } from "../ai/OpenAIService";
+import TwitterApiClient from "./TwitterApiClient";
 
 interface TwitterComposerConfig {
     historySize?: number;
@@ -24,7 +23,7 @@ export class TwitterComposer {
     private aiService: OpenAIService;
     private tweetDatastore: TweetDatastore;
     private config: TwitterComposerConfig;
-    private twitterClient: TwitterClient;
+    private twitterClient: TwitterApiClient;
 
     constructor(config: TwitterComposerConfig = { historySize: 3 }) {
         this.marketDataFetcher = MarketDataFetcher.getInstance();
@@ -33,7 +32,7 @@ export class TwitterComposer {
         this.aiService = new OpenAIService();
         this.tweetDatastore = new TweetDatastore();
         this.config = config;
-        this.twitterClient = new TwitterClient();
+        this.twitterClient = new TwitterApiClient();
     }
 
     private async gatherData() {
