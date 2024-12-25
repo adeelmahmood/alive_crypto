@@ -19,8 +19,8 @@ const maxDelaySeconds = 60; // Maximum delay in seconds (5 minutes)
 // Initialize browser and perform browsing
 export const browsePosts = inngest.createFunction(
     { id: "browse-posts", retries: 0, concurrency: 1 },
-    // { cron: "*/15 * * * *" }, // Every 15 minutes
-    { event: "twitter/browse-posts" },
+    { cron: "0 */3 * * *" }, // Run every 3 hours
+    // { event: "twitter/browse-posts" },
     async ({ event, step }) => {
         try {
             // Check if we can perform actions
