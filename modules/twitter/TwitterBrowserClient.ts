@@ -40,12 +40,13 @@ class TwitterBrowserClient {
 
         // Use the bundled Chromium in production
         const executablePath =
-            process.env.NODE_ENV === "production"
+            process.env.VERCEL_ENV === "production"
                 ? ((browserPath as any).default as string) // Type assertion to handle the path
                 : undefined;
+        console.log("Executable path:", executablePath);
 
         this.browser = await chromium.launch({
-            headless: process.env.NODE_ENV === "production" ? true : headless,
+            headless: process.env.VERCEL_ENV === "production" ? true : headless,
             slowMo,
             executablePath,
             args: [
