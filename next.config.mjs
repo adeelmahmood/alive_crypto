@@ -10,11 +10,19 @@ const nextConfig = {
             },
         ],
     },
-    webpack(config) {
+    webpack(config, { isServer }) {
         config.module.rules.push({
             test: /\.svg$/,
             use: ["@svgr/webpack"],
         });
+
+        // Add Playwright externals for server-side
+        if (isServer) {
+            config.externals.push({
+                "playwright-core": "playwright-core",
+            });
+        }
+
         return config;
     },
 };

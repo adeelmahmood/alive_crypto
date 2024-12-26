@@ -1,4 +1,5 @@
 import { chromium, Browser, Page } from "playwright";
+import * as browserPath from "@playwright/browser-chromium";
 import { Redis } from "@upstash/redis";
 
 class TwitterBrowserClient {
@@ -28,23 +29,36 @@ class TwitterBrowserClient {
         // Check if browser is already initialized
         if (this.browser && this.page) {
             try {
-                // Test if the browser is still responsive
                 await this.page.evaluate(() => true);
-                return; // Browser is still good to use
+                return;
             } catch (e) {
-                // Browser is not responsive, close it properly
                 await this.close();
             }
         }
 
         console.log("Initializing browser...");
+
+        // Use the bundled Chromium in production
+        const executablePath =
+            process.env.NODE_ENV === "production"
+                ? ((browserPath as any).default as string) // Type assertion to handle the path
+                : undefined;
+
         this.browser = await chromium.launch({
-            headless,
+            headless: process.env.NODE_ENV === "production" ? true : headless,
             slowMo,
+            executablePath,
             args: [
                 "--disable-blink-features=AutomationControlled",
                 "--disable-features=IsolateOrigins,site-per-process",
-                "--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-accelerated-2d-canvas",
+                "--no-first-run",
+                "--no-zygote",
+                "--single-process",
+                "--disable-gpu",
             ],
         });
 
