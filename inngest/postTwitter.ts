@@ -3,7 +3,8 @@ import { inngest } from "./client";
 
 export const postTwitter = inngest.createFunction(
     { id: "post-twitter", retries: 0 },
-    { cron: "0 */2 * * *" }, // Run every 3 hours
+    // run every hour
+    { cron: "0 * * * *" },
 
     async ({ event, step }) => {
         // Compose a new tweet and post it
