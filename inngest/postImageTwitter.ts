@@ -3,7 +3,7 @@ import { AliveArtworkGenerator } from "@/modules/artwork/AliveArtworkGenerator";
 
 export const postImageTwitter = inngest.createFunction(
     { id: "post-image-twitter", retries: 0 },
-    { cron: "0 */6 * * *" }, // Run every 6 hours
+    { cron: "0 */2 * * *" }, // Run every 6 hours
 
     async ({ event, step }) => {
         const generator = new AliveArtworkGenerator();
