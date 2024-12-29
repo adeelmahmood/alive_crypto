@@ -1,6 +1,7 @@
 import TwitterApiClient from "@/modules/twitter/TwitterApiClient";
 import TwitterBot from "@/modules/twitter/TwitterBot";
 import { TwitterBotStorage } from "@/modules/twitter/TwitterBotStorage";
+import { TwitterComposer } from "@/modules/twitter/TwitterComposer";
 
 export const twitter = async () => {
     // const rules = {
@@ -46,4 +47,8 @@ export const twitter = async () => {
     // const posts = await bot.getTimelinePosts(1);
     // console.log("Posts:", posts);
     // await bot.close();
+
+    const composer = new TwitterComposer();
+    const { record } = await composer.composeTweet();
+    console.log("Tweet record:", record);
 };

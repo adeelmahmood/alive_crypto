@@ -1,10 +1,10 @@
-import { HyperbolicAIService } from "@/modules/ai/HyperbolicAIService";
+import { OpenAIService } from "@/modules/ai/OpenAIService";
 import { LLM_MODELS } from "@/modules/utils/llmInfo";
 
 export const llm = async () => {
-    const ai31405b = new HyperbolicAIService(LLM_MODELS.HYPERBOLIC_META_LLAMA_3_1_405B_INSTRUCT);
-    const ai318b = new HyperbolicAIService(LLM_MODELS.HYPERBOLIC_META_LLAMA_3_1_8B_INSTRUCT);
-    const ai3370b = new HyperbolicAIService(LLM_MODELS.HYPERBOLIC_META_LLAMA_3_3_70B_INSTRUCT);
+    const ai31405b = new OpenAIService(LLM_MODELS.HYPERBOLIC_META_LLAMA_3_1_405B_INSTRUCT);
+    const ai318b = new OpenAIService(LLM_MODELS.HYPERBOLIC_META_LLAMA_3_1_8B_INSTRUCT);
+    const ai3370b = new OpenAIService(LLM_MODELS.HYPERBOLIC_META_LLAMA_3_3_70B_INSTRUCT);
 
     const TEST_PROMPTS = Array(10).fill("Write a complex paragraph about human evolution");
 

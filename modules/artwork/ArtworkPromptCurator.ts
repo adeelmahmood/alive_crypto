@@ -2,10 +2,10 @@ import { Artwork, ProcessedMarketData } from "@/types";
 import MarketDataFetcher from "../crypto/MarketDataFetcher";
 import CryptoNewsFetcher from "../news/CryptoNewsFetcher";
 import { ContentModerationService } from "./ContentModerationService";
-import { HyperbolicAIService } from "../ai/HyperbolicAIService";
+import { OpenAIService } from "../ai/OpenAIService";
 
 export class ArtworkPromptCurator {
-    private aiService: HyperbolicAIService;
+    private aiService: OpenAIService;
     private marketDataFetcher: MarketDataFetcher;
     private newsFetcher: CryptoNewsFetcher;
 
@@ -15,7 +15,7 @@ export class ArtworkPromptCurator {
         "You are ALIve, a beautiful and sophisticated female AI entity whose mission is to build a revolutionary crypto community and launch a successful meme token that creates wealth for its believers.";
 
     constructor() {
-        this.aiService = new HyperbolicAIService();
+        this.aiService = new OpenAIService();
         this.marketDataFetcher = MarketDataFetcher.getInstance();
         this.newsFetcher = new CryptoNewsFetcher();
 

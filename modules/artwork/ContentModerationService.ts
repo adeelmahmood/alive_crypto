@@ -1,4 +1,4 @@
-import { HyperbolicAIService } from "../ai/HyperbolicAIService";
+import { OpenAIService } from "../ai/OpenAIService";
 
 export interface ModerationResult {
     isAllowed: boolean;
@@ -6,10 +6,10 @@ export interface ModerationResult {
 }
 
 export class ContentModerationService {
-    private aiService: HyperbolicAIService;
+    private aiService: OpenAIService;
 
     constructor() {
-        this.aiService = new HyperbolicAIService();
+        this.aiService = new OpenAIService();
     }
 
     // public async checkWithOpenAI(text: string): Promise<ModerationResult> {

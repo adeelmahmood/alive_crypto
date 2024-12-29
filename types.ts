@@ -18,11 +18,14 @@ export interface ProcessedMarketData {
     coins: {
         [symbol: string]: {
             name: string;
+            symbol?: string;
             priceInUSD: number;
             volume24h: number;
             marketCap: number;
             priceChange24hPercentage: number;
             marketCapRank: number;
+            rank?: number;
+            description?: string;
         };
     };
     lastUpdated: string;

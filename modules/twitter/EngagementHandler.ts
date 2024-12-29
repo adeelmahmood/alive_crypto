@@ -18,9 +18,6 @@ export class EngagementHandler {
 
     async like(post: { tweetId: string; authorHandle: string }): Promise<EngagementResult> {
         try {
-            console.log("\n>>>>>>> About to like tweet", post.tweetId);
-            return { success: true, method: "api" };
-
             // Try API first
             await this.apiClient.likeTweet(post.tweetId);
             return { success: true, method: "api" };
@@ -46,9 +43,6 @@ export class EngagementHandler {
         content: string
     ): Promise<EngagementResult> {
         try {
-            console.log("\n>>>>>>> About to reply to tweet", post.tweetId, "with:", content);
-            return { success: true, method: "api" };
-
             // Try API first
             await this.apiClient.postTweet(content, post.tweetId);
             return { success: true, method: "api" };
@@ -71,9 +65,6 @@ export class EngagementHandler {
 
     async retweet(post: { tweetId: string; authorHandle: string }): Promise<EngagementResult> {
         try {
-            console.log("\n>>>>>>> About to retweet tweet", post.tweetId);
-            return { success: true, method: "api" };
-
             // Try API first
             await this.apiClient.retweetTweet(post.tweetId);
             return { success: true, method: "api" };

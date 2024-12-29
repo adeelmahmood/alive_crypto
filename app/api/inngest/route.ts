@@ -4,7 +4,7 @@ import { postTwitter } from "@/inngest/postTwitter";
 import { postImageTwitter } from "@/inngest/postImageTwitter";
 import { registerTelegramWebhook } from "@/inngest/registerTelegramWebhook";
 import { postTelegramPromo } from "@/inngest/postTelegramPromo";
-import { browsePosts, engagePost } from "@/inngest/browseTwitter";
+import { browsePosts, engagePost, summarizeBrowsing } from "@/inngest/browseTwitter";
 
 // Create an API that serves zero functions
 export const { GET, POST, PUT } = serve({
@@ -19,5 +19,6 @@ export const { GET, POST, PUT } = serve({
         // browser twitter functions
         browsePosts,
         engagePost,
+        summarizeBrowsing,
     ],
 });

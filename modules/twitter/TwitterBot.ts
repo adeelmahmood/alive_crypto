@@ -1,6 +1,6 @@
 import { EngagementAnalyzer } from "./EngagementAnalyzer";
 import { EngagementHandler, EngagementResult } from "./EngagementHandler";
-import { TwitterBotStorage } from "./TwitterBotStorage";
+import { TwitterBotAction, TwitterBotStorage } from "./TwitterBotStorage";
 import TwitterBrowserClient from "./TwitterBrowserClient";
 
 interface EngagementRules {
@@ -103,7 +103,7 @@ class TwitterBot extends TwitterBrowserClient {
         return sortedPosts;
     }
 
-    async engageWithPost(post: any) {
+    async engageWithPost(post: any): Promise<TwitterBotAction> {
         try {
             const engagementType = await this.determineEngagementType(post);
             const startTime = new Date();
@@ -139,27 +139,29 @@ class TwitterBot extends TwitterBrowserClient {
                 console.error(`❌ Failed to engage with post:`, error);
                 throw error;
             } finally {
-                // Record action in database
-                action = await this.storage.saveAction({
-                    timestamp: startTime,
-                    engagement_method: engagementResult?.method || "",
-                    action_type: engagementType.engagementType,
-                    action_reasoning: engagementType.reasoning || "",
-                    target_user: post.authorHandle,
-                    reply_text: engagementType.replyContent || "",
-                    target_post_text: post.text,
-                    target_tweet_id: post.tweetId,
-                    target_tweet_url: `https://x.com/${post.authorHandle}/status/${post.tweetId}`,
-                    engagement_score: post.totalEngagement,
-                    success,
-                    error_message: errorMessage,
-                    metrics: {
-                        likes: parseInt(post.likes || "0"),
-                        replies: parseInt(post.replies || "0"),
-                        retweets: parseInt(post.retweets || "0"),
-                        views: parseInt(post.views || "0"),
-                    },
-                });
+                if (engagementResult?.success && engagementType.engagementType !== "ignore") {
+                    // Record action in database
+                    action = await this.storage.saveAction({
+                        timestamp: startTime,
+                        engagement_method: engagementResult?.method || "",
+                        action_type: engagementType.engagementType,
+                        action_reasoning: engagementType.reasoning || "",
+                        target_user: post.authorHandle,
+                        reply_text: engagementType.replyContent || "",
+                        target_post_text: post.text,
+                        target_tweet_id: post.tweetId,
+                        target_tweet_url: `https://x.com/${post.authorHandle}/status/${post.tweetId}`,
+                        engagement_score: post.totalEngagement,
+                        success,
+                        error_message: errorMessage,
+                        metrics: {
+                            likes: parseInt(post.likes || "0"),
+                            replies: parseInt(post.replies || "0"),
+                            retweets: parseInt(post.retweets || "0"),
+                            views: parseInt(post.views || "0"),
+                        },
+                    });
+                }
             }
 
             return action;
@@ -176,6 +178,7 @@ class TwitterBot extends TwitterBrowserClient {
     }> {
         // Analyze post content
         const response = await this.engagementAnalyzer.analyzePost(post.text, post.totalEngagement);
+        console.log(`Engagement analysis result: ${response}`);
 
         // Check if post is engagement-worthy
         const isEngagementWorthy = response.confidence > 0.5;
@@ -208,6 +211,36 @@ class TwitterBot extends TwitterBrowserClient {
         }
     }
 
+    async postTweet(content: string) {
+        try {
+            const tweetCharsLimit = 280;
+
+            // get text area
+            const tweetBox = await this.getPage().waitForSelector(
+                '[data-testid="tweetTextarea_0"]'
+            );
+            if (!tweetBox) throw new Error("Tweet box not found");
+
+            // type tweet
+            let tweet = content;
+            if (content.length > tweetCharsLimit) {
+                console.log("Tweet content exceeds character limit");
+                tweet = content.substring(0, tweetCharsLimit);
+            }
+            await tweetBox.fill(tweet);
+
+            // get tweet button
+            const tweetButton = await this.getPage().waitForSelector('[data-testid="tweetButton"]');
+            if (!tweetButton) throw new Error("Tweet button not found");
+            await tweetButton.click({ force: true });
+
+            console.log(`Posted tweet: ${content}`);
+        } catch (error) {
+            console.error("Error posting tweet:", error);
+            throw error;
+        }
+    }
+
     async replyToPost(post: any, replyContent: string) {
         try {
             // Click reply button
@@ -229,7 +262,7 @@ class TwitterBot extends TwitterBrowserClient {
                 '[data-testid="tweetButton"]'
             );
             if (!submitButton) throw new Error("Submit button not found");
-            await submitButton.click();
+            await submitButton.click({ force: true });
 
             console.log(`Replied to ${post.authorHandle}`);
         } catch (error) {

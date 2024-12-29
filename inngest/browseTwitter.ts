@@ -1,25 +1,40 @@
 import TwitterBot from "@/modules/twitter/TwitterBot";
 import { inngest } from "./client";
+import { TextToSpeechService } from "@/modules/ai/TextToSpeechService";
+import OpenAI from "openai";
+import { LLM_MODELS } from "@/modules/utils/llmInfo";
+import MarketDataFetcher from "@/modules/crypto/MarketDataFetcher";
 
 // Initialize TwitterBot with rules
 const twitterBot = new TwitterBot({
     timingRules: {
-        maxActionsPerHour: 15,
-        cooldownPeriod: 120, // minutes
+        maxActionsPerHour: 25,
+        cooldownPeriod: 300, // minutes
         maxDailyActions: 100,
     },
     blacklistedWords: [], // Add any words to avoid
 });
 
 const timelinePullCount = 20;
-const maxInOneGo = 5;
-const minDelaySeconds = 10; // Minimum delay in seconds (1 minute)
-const maxDelaySeconds = 60; // Maximum delay in seconds (5 minutes)
+const maxInOneGo = 8;
+const minDelaySeconds = 10; // Minimum delay in seconds
+const maxDelaySeconds = 60; // Maximum delay in seconds
+const headless = true;
+
+// Helper to check if current time is within announcement hours
+const isWithinAnnouncementHours = (): boolean => {
+    const hour = new Date().getHours();
+    return (hour >= 9 && hour < 12) || (hour >= 18 && hour <= 21);
+};
+
+const shouldSpeak = process.env.VERCEL_ENV !== "production" && isWithinAnnouncementHours();
+const speaker = shouldSpeak ? new TextToSpeechService() : null;
 
 // Initialize browser and perform browsing
 export const browsePosts = inngest.createFunction(
     { id: "browse-posts", retries: 0, concurrency: 1 },
-    { cron: "0 */3 * * *" }, // Run every 3 hours
+    // Run every 2.5 hours
+    { cron: "30 */2 * * *" },
     // { event: "twitter/browse-posts" },
     async ({ event, step }) => {
         try {
@@ -35,7 +50,7 @@ export const browsePosts = inngest.createFunction(
 
             // Initialize browser
             await step.run("init-browser", async () => {
-                await twitterBot.init(true, 500);
+                await twitterBot.init(headless, 500);
             });
 
             // Login to Twitter
@@ -52,8 +67,23 @@ export const browsePosts = inngest.createFunction(
 
             // Filter and sort posts
             const relevantPosts = await step.run("filter-posts", async () => {
-                return await twitterBot.filterAndSortPosts(posts);
+                const filtered = await twitterBot.filterAndSortPosts(posts);
+                return filtered;
             });
+
+            // // Send event for summarizing the filtered posts
+            // if (relevantPosts.length > 0) {
+            //     await step.sendEvent("twitter/summarize.browse", {
+            //         name: "twitter/summarize.browse",
+            //         data: {
+            //             posts: relevantPosts.slice(0, maxInOneGo).map((post) => ({
+            //                 authorHandle: post.authorHandle,
+            //                 text: post.text,
+            //                 engagementScore: post.totalEngagement,
+            //             })),
+            //         },
+            //     });
+            // }
 
             // Engage with posts with delays
             for (let i = 0; i < relevantPosts.length && i < maxInOneGo; i++) {
@@ -80,11 +110,18 @@ export const engagePost = inngest.createFunction(
     { event: "twitter/engage.post" },
     async ({ event, step }) => {
         const { post } = event.data;
-        let maxRetries = 3;
+        let maxRetries = 2;
         let currentTry = 0;
+
+        // make sure both tweetId and authorHandle are present
+        if (!post.tweetId || !post.authorHandle) {
+            throw new Error("Invalid post data");
+        }
 
         while (currentTry < maxRetries) {
             try {
+                console.log(`Engaging with post ${post.tweetId} by ${post.authorHandle}`);
+
                 // Generate a random delay
                 const delaySeconds =
                     Math.floor(Math.random() * (maxDelaySeconds - minDelaySeconds + 1)) +
@@ -97,17 +134,11 @@ export const engagePost = inngest.createFunction(
 
                 // Initialize browser
                 await step.run("init-browser", async () => {
-                    await twitterBot.init(true, 500);
+                    await twitterBot.init(headless, 500);
                 });
 
                 // Engage with the post
                 const action = await step.run("engage", async () => {
-                    console.log(
-                        `Starting engagement with ${
-                            post.authorHandle
-                        } at ${new Date().toISOString()}`
-                    );
-
                     // Navigate to post with timeout
                     const postUrl = `https://x.com/${post.authorHandle}/status/${post.tweetId}`;
                     await twitterBot.goToPage(postUrl);
@@ -131,5 +162,69 @@ export const engagePost = inngest.createFunction(
                 await step.sleep("retry-delay", "30 seconds");
             }
         }
+    }
+);
+
+// Summarize the posts before engaging
+export const summarizeBrowsing = inngest.createFunction(
+    { id: "summarize-browse", retries: 0, concurrency: 1 },
+    { event: "twitter/summarize.browse" },
+    async ({ event, step }) => {
+        if (!shouldSpeak || !isWithinAnnouncementHours()) {
+            return;
+        }
+
+        const { posts } = event.data;
+
+        // get market data
+        const marketDataFetcher = MarketDataFetcher.getInstance();
+        const majorCoins = await marketDataFetcher.getMajorCoins();
+
+        const prompt = `
+Current Time: ${new Date().toLocaleTimeString()}
+
+Crypto Market:
+${JSON.stringify(majorCoins)}
+
+Posts:
+${JSON.stringify(posts)}`;
+
+        await step.run("announce-summary", async () => {
+            const openai = new OpenAI();
+            const completion = await openai.chat.completions.create({
+                model: LLM_MODELS.OPENAI_GPT_4O_MINI,
+                messages: [
+                    {
+                        role: "system",
+                        content: `You are an AI assistant starting your Twitter browsing session. 
+Create a natural, flowing summary that includes:
+1. A brief greeting appropriate for the time of day
+2. A quick comment on the crypto market conditions (focus on notable changes or stability)
+3. A summary of the Twitter posts you're about to engage with
+4. End with either:
+    - A light-hearted crypto joke (e.g., "Why did the Bitcoin cross the blockchain? To get to the other validator!")
+    - An interesting crypto fact (e.g., "Fun fact: The first Bitcoin transaction was used to buy two pizzas for 10,000 BTC!")
+
+Keep parts 1-3 concise but conversational. The joke/fact should be short and clever.
+Vary between jokes and facts to keep it interesting.
+
+Example outputs:
+"Good morning! Bitcoin's holding strong at 45k while Ethereum and Solana are showing some gains. Found some great discussions about AI and web3 in my feed from @user1 and @user2. Here's a fun one: Why don't Bitcoin maxis need umbrellas? Because they're already in the cloud!"
+
+"Evening folks! Market's looking green - BTC at 52k, ETH pushing 3k, and SOL making moves. Got some interesting posts to check out from @user1 about DeFi trends. Did you know? The term 'HODL' came from a typo in a 2013 Bitcoin forum post!"
+`,
+                    },
+                    {
+                        role: "user",
+                        content: prompt,
+                    },
+                ],
+            });
+
+            const summary = completion.choices[0].message.content;
+            if (speaker) {
+                await speaker.speakText(summary || "Found some interesting posts to check out.");
+            }
+        });
     }
 );

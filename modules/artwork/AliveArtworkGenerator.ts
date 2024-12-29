@@ -1,4 +1,4 @@
-import { HyperbolicAIService } from "../ai/HyperbolicAIService";
+import { OpenAIService } from "../ai/OpenAIService";
 import { twitterImageSystemPrompt, twitterImagePrompt } from "../prompts/twitterImagePrompt";
 import TwitterApiClient from "../twitter/TwitterApiClient";
 import { ArtworkDatastore } from "./ArtworkDatastore";
@@ -7,14 +7,14 @@ import { ArtworkPromptCurator } from "./ArtworkPromptCurator";
 
 export class AliveArtworkGenerator {
     private datastore: ArtworkDatastore;
-    private aiService: HyperbolicAIService;
+    private aiService: OpenAIService;
     private curator: ArtworkPromptCurator;
     private gen: ArtworkGenerator;
     private twitter: TwitterApiClient;
 
     constructor() {
         this.datastore = new ArtworkDatastore();
-        this.aiService = new HyperbolicAIService();
+        this.aiService = new OpenAIService();
 
         this.curator = new ArtworkPromptCurator();
         this.gen = new ArtworkGenerator();

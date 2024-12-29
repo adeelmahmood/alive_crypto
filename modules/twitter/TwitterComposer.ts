@@ -2,7 +2,6 @@ import MarketDataFetcher from "@/modules/crypto/MarketDataFetcher";
 import CryptoNewsFetcher from "@/modules/news/CryptoNewsFetcher";
 import { TweetDatastore } from "./TweetDatastore";
 import { twitterPostPrompt, twitterPostSystemPrompt } from "../prompts/twitterPostPrompt";
-import readline from "readline";
 import { printHeader } from "../utils/console";
 import { OpenAIService } from "../ai/OpenAIService";
 import TwitterApiClient from "./TwitterApiClient";
@@ -13,6 +12,7 @@ interface TwitterComposerConfig {
 
 interface TweetData {
     majorCoins: any;
+    trendingCoins: any;
     news: any;
     history: any[];
 }
@@ -38,6 +38,7 @@ export class TwitterComposer {
     private async gatherData() {
         console.log("Requesting major coins data...");
         const majorCoins = await this.marketDataFetcher.getMajorCoins();
+        const trendingCoins = await this.marketDataFetcher.getTrendingCoins();
         // console.log("Requesting AI meme coins data...");
         // const aiMemeCoinsSummary = await this.marketDataFetcher.getAIMemeSummary();
         // console.log("Requesting on-chain metrics...");
@@ -51,6 +52,7 @@ export class TwitterComposer {
 
         return {
             majorCoins,
+            trendingCoins,
             // aiMemeCoinsSummary,
             // marketInsight,
             news,
@@ -58,64 +60,29 @@ export class TwitterComposer {
     }
 
     private async gatherTweetData(): Promise<TweetData> {
-        const { majorCoins, news } = await this.gatherData();
+        const { majorCoins, trendingCoins, news } = await this.gatherData();
         const history = await this.tweetDatastore.getRecentHistory(this.config.historySize);
-        return { majorCoins, news, history };
+        return { majorCoins, trendingCoins, news, history };
     }
 
-    private async generateTweet(data: TweetData, previousGuidance: string[] = []): Promise<string> {
+    private async generateTweet(data: TweetData): Promise<string> {
         const systemPrompt = twitterPostSystemPrompt();
         const userPrompt = twitterPostPrompt(
             data.history,
             data.majorCoins,
-            data.news,
-            previousGuidance
+            data.trendingCoins,
+            data.news
         );
-        printHeader("USER PROMPT", userPrompt);
+        // printHeader("TWITTER USER PROMPT>> ", userPrompt);
 
         const response = await this.aiService.generateResponse(systemPrompt, userPrompt);
         return response.response;
     }
 
-    private async promptUserForConfirmation(tweetContent: string): Promise<{
-        confirmed: boolean;
-        guidance?: string;
-        shouldEnd?: boolean;
-    }> {
-        printHeader("AI RESPONSE", tweetContent);
-        const answer = await this.createPrompt("Do you want to post this tweet? (yes/no/end) ");
-
-        if (answer === "end") {
-            return { confirmed: false, shouldEnd: true };
-        }
-
-        if (answer === "no") {
-            const guidance = await this.createPrompt("Enter guidance for the AI: ");
-            return { confirmed: false, guidance };
-        }
-
-        return { confirmed: answer === "yes" };
-    }
-
-    private async createPrompt(question: string): Promise<string> {
-        const rl = readline.createInterface({
-            input: process.stdin,
-            output: process.stdout,
-        });
-
-        try {
-            return await new Promise<string>((resolve) => rl.question(question, resolve));
-        } finally {
-            rl.close();
-        }
-    }
-
     private async publishTweet(content: string) {
         const record = await this.tweetDatastore.saveTweet(content);
 
-        console.log(">>> Posting tweet:", content);
         const tweet = await this.twitterClient.postTweet(record.content);
-        console.log("Tweet posted:", tweet);
         if (tweet?.data?.id) {
             await this.markTweetAsPosted(record.id, tweet.data.id);
         }
@@ -125,31 +92,14 @@ export class TwitterComposer {
 
     public async composeTweet(confirm = false) {
         try {
+            // gather data
             const tweetData = await this.gatherTweetData();
+
+            // generate tweet
             let tweetResponse = await this.generateTweet(tweetData);
-            let previousGuidance: string[] = [];
+            console.log("Generated tweet:", tweetResponse);
 
-            if (confirm) {
-                while (true) {
-                    const { confirmed, guidance, shouldEnd } = await this.promptUserForConfirmation(
-                        tweetResponse
-                    );
-
-                    if (shouldEnd) {
-                        throw new Error("Dev ended the tweet composition");
-                    }
-
-                    if (confirmed) {
-                        break;
-                    }
-
-                    if (guidance) {
-                        previousGuidance.push(guidance);
-                        tweetResponse = await this.generateTweet(tweetData, previousGuidance);
-                    }
-                }
-            }
-
+            // publish tweet
             const record = await this.publishTweet(tweetResponse);
             return { record };
         } catch (error) {

@@ -165,6 +165,53 @@ class MarketDataFetcher {
         const marketData = await this.getMarketData();
         return marketData.coins[symbol.toLowerCase()] || null;
     }
+
+    /**
+     * Get trending coins
+     */
+    public async getTrendingCoins(): Promise<ProcessedMarketData> {
+        const cacheKey = "trending-coins";
+        const now = Date.now();
+        const cached = this.cache.get(cacheKey);
+
+        if (cached && now - cached.timestamp < this.CACHE_DURATION) {
+            console.log(chalk.green("Using <cached> trending coins"));
+            return cached.data;
+        }
+
+        try {
+            console.log(chalk.blue("Fetching trending coins..."));
+            const response = await axios.get(`${this.API_BASE_URL}/search/trending`);
+            const coins = response.data.coins.reduce((acc: any, coin: any) => {
+                acc[coin.item.symbol.toLowerCase()] = {
+                    name: coin.item.name,
+                    symbol: coin.item.symbol,
+                    priceInUSD: coin.item.data.price,
+                    rank: coin.item.score,
+                    priceChange24hPercentage: coin.item.data.price_change_percentage_24h.usd,
+                    marketCapRank: coin.item.market_cap_rank || 0,
+                    description: coin.item.data.content?.description || "",
+                };
+                return acc;
+            }, {});
+
+            const processedData: ProcessedMarketData = {
+                timestamp: now,
+                coins,
+                lastUpdated: new Date().toISOString(),
+            };
+
+            this.cache.set(cacheKey, { data: processedData, timestamp: now });
+            return processedData;
+        } catch (error) {
+            if (cached) {
+                console.warn("Failed to fetch fresh trending coins, returning cached data");
+                return cached.data;
+            }
+            console.error("Failed to fetch trending coins", error);
+            throw error;
+        }
+    }
 }
 
 export default MarketDataFetcher;

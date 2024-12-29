@@ -1,4 +1,4 @@
-import { HyperbolicAIService } from "@/modules/ai/HyperbolicAIService";
+import { OpenAIService } from "@/modules/ai/OpenAIService";
 import { generateChatPrompt, generateChatSystemPrompt } from "@/modules/prompts/chatPrompt";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
         console.log("Chat prompt:", chatPrompt);
 
         // Generate response
-        const aiService = new HyperbolicAIService();
+        const aiService = new OpenAIService();
         const response = await aiService.generateResponse(systemPrompt, chatPrompt);
         console.log("\n-----------------------------\n");
 

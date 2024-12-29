@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { BaseAIService } from "./BaseAIService";
 import chalk from "chalk";
-import { AIResponse } from "@/types";
+import { AIImageResponse, AIResponse } from "@/types";
 import { calculateLLMCost } from "../utils/llmCost";
 import { LLM_MODELS } from "../utils/llmInfo";
 import { printHeader } from "../utils/console";
@@ -15,6 +15,38 @@ export class OpenAIService extends BaseAIService {
         this.openai = new OpenAI();
 
         this.useCache = process.env.USE_AI_CACHE === "true";
+    }
+
+    async generateImage(prompt: string): Promise<AIImageResponse> {
+        try {
+            console.log(this.constructor.name, "Generating image using OpenAI API");
+
+            const images = await this.openai.images.generate({
+                model: "dall-e-3",
+                prompt,
+                response_format: "b64_json",
+            });
+
+            if (!images.data || images.data.length === 0) {
+                throw new Error("No images found in the response.");
+            }
+
+            const image = images.data[0];
+            const imageBase64 = image.b64_json || "";
+            if (!imageBase64) {
+                throw new Error("No image found in the response.");
+            }
+
+            const aiResponse: AIImageResponse = {
+                b64_json: imageBase64,
+                revised_prompt: image.revised_prompt || prompt,
+            };
+
+            return aiResponse;
+        } catch (error) {
+            console.error("Error generating AI image:", error);
+            throw error;
+        }
     }
 
     async generateResponse(systemPrompt: string, prompt: string): Promise<AIResponse> {

@@ -14,19 +14,23 @@ export const MarketData = async () => {
 
         // time this operation
         // const s = Date.now();
-        const coins = await fetcher.getMajorCoins();
+        // const coins = await fetcher.getMajorCoins();
 
-        const result = Object.entries(coins)
-            .map(
-                ([symbol, data]) =>
-                    `${symbol.toUpperCase()}: $${data.priceInUSD.toFixed(2)} (${
-                        data.priceChange24hPercentage >= 0 ? "+" : ""
-                    }${data.priceChange24hPercentage.toFixed(1)}%)`
-            )
-            .join("\n");
-        console.log("Major coins:", result);
+        // const result = Object.entries(coins)
+        //     .map(
+        //         ([symbol, data]) =>
+        //             `${symbol.toUpperCase()}: $${data.priceInUSD.toFixed(2)} (${
+        //                 data.priceChange24hPercentage >= 0 ? "+" : ""
+        //             }${data.priceChange24hPercentage.toFixed(1)}%)`
+        //     )
+        //     .join("\n");
+        // console.log("Major coins:", result);
         // await fetcher.getMajorCoins();
         // console.log("Time taken:", Date.now() - s, "ms");
+
+        // get trending coins
+        const trendingCoins = await fetcher.getTrendingCoins();
+        console.log("Trending coins:", trendingCoins);
     } catch (error) {
         console.error("Error fetching market data:", error);
     }

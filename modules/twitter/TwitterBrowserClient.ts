@@ -1,5 +1,4 @@
 import { chromium, Browser, Page } from "playwright";
-import * as browserPath from "@playwright/browser-chromium";
 import { Redis } from "@upstash/redis";
 
 class TwitterBrowserClient {
@@ -38,17 +37,9 @@ class TwitterBrowserClient {
 
         console.log("Initializing browser...");
 
-        // Use the bundled Chromium in production
-        const executablePath =
-            process.env.VERCEL_ENV === "production"
-                ? ((browserPath as any).default as string) // Type assertion to handle the path
-                : undefined;
-        console.log("Executable path:", executablePath);
-
         this.browser = await chromium.launch({
             headless: process.env.VERCEL_ENV === "production" ? true : headless,
             slowMo,
-            executablePath,
             args: [
                 "--disable-blink-features=AutomationControlled",
                 "--disable-features=IsolateOrigins,site-per-process",
@@ -150,7 +141,7 @@ class TwitterBrowserClient {
         }
     }
 
-    async getTimelinePosts(count = 20, maxScrolls = 5) {
+    async getTimelinePosts(count = 20, maxScrolls = 10) {
         if (!this.page) throw new Error("Browser not initialized");
 
         await this.page.goto("https://x.com/home");
