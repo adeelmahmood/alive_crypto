@@ -5,7 +5,14 @@ import { Brain, Sparkles, Zap, Circle } from "lucide-react";
 interface TweetRecord {
     id: string;
     content: string;
+    thoughts: string;
     created_at: string;
+}
+
+interface ThoughtProps {
+    content: string;
+    thoughts: string;
+    timestamp: string;
 }
 
 const ThoughtIndicator = () => (
@@ -28,12 +35,7 @@ const LoadingIndicator = () => (
     </div>
 );
 
-interface ThoughtProps {
-    content: string;
-    timestamp: string;
-}
-
-const Thought = ({ content, timestamp }: ThoughtProps) => {
+const Thought = ({ content, thoughts, timestamp }: ThoughtProps) => {
     const formattedTime = new Date(timestamp).toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
@@ -48,13 +50,29 @@ const Thought = ({ content, timestamp }: ThoughtProps) => {
                     <div className="w-3 h-3 rounded-full bg-amber-500 dark:bg-purple-500 ring-4 ring-amber-500/20 dark:ring-purple-500/20 group-hover:ring-amber-500/30 dark:group-hover:ring-purple-500/30 transition-all duration-300" />
                 </div>
 
-                <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-2 text-sm text-amber-200 dark:text-purple-200">
-                        <Zap className="w-4 h-4" />
-                        <span>{formattedTime}</span>
+                <div className="flex-1 space-y-4">
+                    {/* Post Content Section */}
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm text-amber-200 dark:text-purple-200">
+                            <Zap className="w-4 h-4" />
+                            <span>{formattedTime}</span>
+                        </div>
+
+                        <p className="text-white font-medium leading-relaxed">{content}</p>
                     </div>
 
-                    <p className="text-white font-medium leading-relaxed">{content}</p>
+                    {/* Thoughts Section */}
+                    <div className="space-y-2 pl-4">
+                        <div className="flex items-center gap-2">
+                            <Brain className="w-3 h-3 text-amber-300/60 dark:text-purple-300/60" />
+                            <span className="text-xs font-medium text-amber-300/60 dark:text-purple-300/60">
+                                Thought Process
+                            </span>
+                        </div>
+                        <p className="text-sm text-amber-100/70 dark:text-purple-100/70 leading-relaxed">
+                            {thoughts}
+                        </p>
+                    </div>
 
                     <div className="w-2 h-2 rounded-full bg-amber-500/30 dark:bg-purple-500/30 animate-ping absolute left-[22px] top-[30px] hidden group-hover:block" />
                 </div>
@@ -82,12 +100,16 @@ const ThoughtStream = ({ className }: ThoughtStreamProps) => {
             if (!response.ok) throw new Error("Failed to fetch thoughts");
 
             const data = await response.json();
+            console.log("Fetched data:", data); // Debug log
+
             if (data.success && data.data) {
                 const transformedThoughts = data.data.map((tweet: TweetRecord) => ({
                     content: tweet.content,
+                    thoughts: tweet.thoughts,
                     timestamp: tweet.created_at,
                 }));
 
+                console.log("Transformed thoughts:", transformedThoughts); // Debug log
                 setThoughts(transformedThoughts);
 
                 if (streamRef.current) {
@@ -98,6 +120,7 @@ const ThoughtStream = ({ className }: ThoughtStreamProps) => {
                 }
             }
         } catch (err) {
+            console.error("Fetch error:", err); // Debug log
             setError(err instanceof Error ? err.message : "An error occurred");
         } finally {
             setIsLoading(false);
@@ -147,6 +170,7 @@ const ThoughtStream = ({ className }: ThoughtStreamProps) => {
                                 <Thought
                                     key={thought.timestamp}
                                     content={thought.content}
+                                    thoughts={thought.thoughts}
                                     timestamp={thought.timestamp}
                                 />
                             ))
