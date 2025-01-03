@@ -13,13 +13,13 @@ interface EngagementRules {
 }
 
 class TwitterBot extends TwitterBrowserClient {
-    private rules: EngagementRules;
+    private rules?: EngagementRules;
     private storage: TwitterBotStorage;
 
     private engagementAnalyzer: EngagementAnalyzer;
     private engagementHandler: EngagementHandler;
 
-    constructor(rules: EngagementRules, cookiesPath?: string) {
+    constructor(rules?: EngagementRules, cookiesPath?: string) {
         super(cookiesPath);
         this.rules = rules;
 
@@ -65,7 +65,7 @@ class TwitterBot extends TwitterBrowserClient {
 
         for (const post of posts) {
             const thresholdTime = new Date(
-                Date.now() - this.rules.timingRules.cooldownPeriod * 60000
+                Date.now() - (this.rules?.timingRules.cooldownPeriod || 60) * 60000
             );
             // Check if we've recently engaged with this user
             const recentActions = await this.storage.getUserEngagementHistory(post.authorHandle);
@@ -178,7 +178,7 @@ class TwitterBot extends TwitterBrowserClient {
     }> {
         // Analyze post content
         const response = await this.engagementAnalyzer.analyzePost(post.text, post.totalEngagement);
-        console.log(`Engagement analysis result: ${response}`);
+        console.log("Engagement analysis result", response);
 
         // Check if post is engagement-worthy
         const isEngagementWorthy = response.confidence > 0.5;
@@ -215,26 +215,30 @@ class TwitterBot extends TwitterBrowserClient {
         try {
             const tweetCharsLimit = 280;
 
-            // get text area
+            // Get the text area
             const tweetBox = await this.getPage().waitForSelector(
                 '[data-testid="tweetTextarea_0"]'
             );
             if (!tweetBox) throw new Error("Tweet box not found");
 
-            // type tweet
+            // Type the tweet content
             let tweet = content;
             if (content.length > tweetCharsLimit) {
-                console.log("Tweet content exceeds character limit");
+                console.log("Tweet content exceeds character limit, truncating...");
                 tweet = content.substring(0, tweetCharsLimit);
             }
             await tweetBox.fill(tweet);
 
-            // get tweet button
-            const tweetButton = await this.getPage().waitForSelector('[data-testid="tweetButton"]');
-            if (!tweetButton) throw new Error("Tweet button not found");
-            await tweetButton.click({ force: true });
+            // Post the tweet using Command + Enter
+            console.log("Posting the tweet using Command + Enter...");
+            await this.getPage().keyboard.down("Meta"); // For Command key (use 'Control' for Windows/Linux if needed)
+            await this.getPage().keyboard.press("Enter");
+            await this.getPage().keyboard.up("Meta");
 
-            console.log(`Posted tweet: ${content}`);
+            // Add a delay to ensure the tweet gets posted
+            await new Promise((resolve) => setTimeout(resolve, 3000)); // Wait 3 seconds
+
+            console.log(`Successfully posted tweet: ${tweet}`);
         } catch (error) {
             console.error("Error posting tweet:", error);
             throw error;
@@ -243,28 +247,29 @@ class TwitterBot extends TwitterBrowserClient {
 
     async replyToPost(post: any, replyContent: string) {
         try {
-            // Click reply button
-            const replyButton = await this.getPage().$('[data-testid="reply"]');
-            if (!replyButton) throw new Error("Reply button not found");
+            const page = this.getPage();
 
-            console.log(`Replying to ${post.authorHandle}...`);
+            // Open the reply window
+            const replyButton = await page.$('[data-testid="reply"]');
+            if (!replyButton) throw new Error("Reply button not found");
+            console.log(`Opening reply window for ${post.authorHandle}...`);
             await replyButton.click();
 
-            // Wait for reply box and type
-            const replyBox = await this.getPage().waitForSelector(
-                '[data-testid="tweetTextarea_0"]'
-            );
+            // Wait for the reply box and type the content
+            const replyBox = await page.waitForSelector('[data-testid="tweetTextarea_0"]');
             if (!replyBox) throw new Error("Reply box not found");
             await replyBox.fill(replyContent);
 
-            // Click reply button
-            const submitButton = await this.getPage().waitForSelector(
-                '[data-testid="tweetButton"]'
-            );
-            if (!submitButton) throw new Error("Submit button not found");
-            await submitButton.click({ force: true });
+            // Use Command + Enter to post the reply
+            console.log("Posting the reply using Command + Enter...");
+            await page.keyboard.down("Meta"); // For Command key (use 'Control' for Windows/Linux if needed)
+            await page.keyboard.press("Enter");
+            await page.keyboard.up("Meta");
 
-            console.log(`Replied to ${post.authorHandle}`);
+            // Add a delay to ensure the reply gets posted
+            await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
+
+            console.log(`Successfully replied to ${post.authorHandle}`);
         } catch (error) {
             console.error("Error replying to post:", error);
             throw error;
@@ -299,6 +304,11 @@ class TwitterBot extends TwitterBrowserClient {
     }
 
     async canPerformActions(): Promise<boolean> {
+        if (!this.rules) {
+            console.log("No rules defined for action timing");
+            return true;
+        }
+
         console.log("\nChecking if actions can be performed...");
 
         // Get daily count from database

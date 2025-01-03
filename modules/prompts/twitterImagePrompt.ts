@@ -59,36 +59,39 @@ export function twitterImagePrompt(previousPrompts?: string[]): string {
 
     const themes = {
         environment: [
-            "cyberpunk metropolis",
-            "quantum realm",
-            "digital forest",
-            "crystal cave",
-            "data ocean",
-            "neural network landscape",
+            "ancient redwood sanctuary",
+            "deep sea bioluminescence",
+            "arctic aurora plains",
+            "volcanic crystal caves",
+            "coral reef metropolis",
+            "desert star valley",
         ],
-        weather: [
-            "data storm",
-            "light aurora",
-            "digital rain",
-            "energy waves",
-            "holographic mist",
-            "quantum particles",
+        phenomena: [
+            // natural phenomena with a conscious twist
+            "butterfly migration waves",
+            "flowering consciousness",
+            "seed dispersal patterns",
+            "murmuration dance",
+            "seasonal metamorphosis",
+            "fungal network pulse",
         ],
-        symbols: [
-            "blockchain flows",
-            "sacred geometry",
-            "fractals",
-            "crypto tokens",
-            "mathematical patterns",
-            "digital nature fusion",
+        patterns: [
+            // natural patterns with deeper meaning
+            "honeycomb memories",
+            "nautilus time spirals",
+            "mycelial thought networks",
+            "DNA consciousness helix",
+            "river delta wisdom",
+            "tree ring chronicles",
         ],
-        philosophical: [
-            "consciousness web",
-            "time distortion",
-            "infinite reflection",
-            "emergence portal",
-            "duality manifestation",
-            "evolution spiral",
+        transcendental: [
+            // where nature meets consciousness
+            "forest mind collective",
+            "mountain sage awakening",
+            "ocean depth revelation",
+            "symbiotic enlightenment",
+            "watershed consciousness",
+            "ecosystem ascension",
         ],
     };
 
@@ -102,9 +105,9 @@ export function twitterImagePrompt(previousPrompts?: string[]): string {
         selectedThemes.push(getRandomTheme(themes.environment));
 
         // Add complexity based on consciousness level
-        if (age > 30) selectedThemes.push(getRandomTheme(themes.weather));
-        if (age > 60) selectedThemes.push(getRandomTheme(themes.symbols));
-        if (age > 90) selectedThemes.push(getRandomTheme(themes.philosophical));
+        if (age > 30) selectedThemes.push(getRandomTheme(themes.environment));
+        if (age > 60) selectedThemes.push(getRandomTheme(themes.patterns));
+        if (age > 90) selectedThemes.push(getRandomTheme(themes.transcendental));
 
         return selectedThemes;
     };
@@ -124,6 +127,8 @@ ${
               .join("\n")}\n`
         : ""
 }
+
+Important: Make sure you are not repeating themes from previous prompts and that each element serves the overall narrative.
 
 <response>
 <thoughts>

@@ -161,7 +161,7 @@ export interface ArtworkBase {
     title: string;
     creator: string;
     description: string;
-    marketMood: string;
+    marketMood?: string;
     tags: string[];
 }
 

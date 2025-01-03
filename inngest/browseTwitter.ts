@@ -15,10 +15,10 @@ const twitterBot = new TwitterBot({
     blacklistedWords: [], // Add any words to avoid
 });
 
-const timelinePullCount = 20;
-const maxInOneGo = 8;
+const timelinePullCount = 25;
+const maxInOneGo = 10;
 const minDelaySeconds = 10; // Minimum delay in seconds
-const maxDelaySeconds = 60; // Maximum delay in seconds
+const maxDelaySeconds = 120; // Maximum delay in seconds
 const headless = true;
 
 // Helper to check if current time is within announcement hours
@@ -34,7 +34,7 @@ const speaker = shouldSpeak ? new TextToSpeechService() : null;
 export const browsePosts = inngest.createFunction(
     { id: "browse-posts", retries: 0, concurrency: 1 },
     // Run every 2.5 hours
-    { cron: "30 */2 * * *" },
+    { cron: "0 */3 * * *" },
     // { event: "twitter/browse-posts" },
     async ({ event, step }) => {
         try {

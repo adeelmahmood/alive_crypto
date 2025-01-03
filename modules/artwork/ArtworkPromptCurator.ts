@@ -3,6 +3,7 @@ import MarketDataFetcher from "../crypto/MarketDataFetcher";
 import CryptoNewsFetcher from "../news/CryptoNewsFetcher";
 import { ContentModerationService } from "./ContentModerationService";
 import { OpenAIService } from "../ai/OpenAIService";
+import { sanitizeXmlValue } from "../utils/xml";
 
 export class ArtworkPromptCurator {
     private aiService: OpenAIService;
@@ -24,28 +25,16 @@ export class ArtworkPromptCurator {
 
     private static readonly VALID_MARKET_MOODS = ["Bullish", "Bearish", "Transition", "Prophetic"];
 
-    private sanitizeXmlValue(value: string): string {
-        return value
-            .trim()
-            .replace(/&lt;/g, "<")
-            .replace(/&gt;/g, ">")
-            .replace(/&amp;/g, "&")
-            .replace(/&quot;/g, '"')
-            .replace(/&#39;/g, "'");
-    }
-
     private extractArtworkFromXml(xml: string): Record<string, any> {
         try {
             // Clean up XML and extract values
             const cleanXml = xml.replace(/>\s+</g, "><");
 
-            const title = this.sanitizeXmlValue(
-                cleanXml.match(/<title>([\s\S]*?)<\/title>/)?.[1] || ""
-            );
-            const description = this.sanitizeXmlValue(
+            const title = sanitizeXmlValue(cleanXml.match(/<title>([\s\S]*?)<\/title>/)?.[1] || "");
+            const description = sanitizeXmlValue(
                 cleanXml.match(/<description>([\s\S]*?)<\/description>/)?.[1] || ""
             );
-            let marketMood = this.sanitizeXmlValue(
+            let marketMood = sanitizeXmlValue(
                 cleanXml.match(/<marketMood>([\s\S]*?)<\/marketMood>/)?.[1] || ""
             ).replace(/"/g, "");
 
@@ -57,7 +46,7 @@ export class ArtworkPromptCurator {
 
             // Extract up to 3 tags
             while ((match = tagRegex.exec(tagsMatch)) !== null && tags.length < 3) {
-                const tag = this.sanitizeXmlValue(match[1]);
+                const tag = sanitizeXmlValue(match[1]);
                 if (tag.length > 0) {
                     tags.push(tag);
                 }

@@ -24,7 +24,7 @@ class TwitterBrowserClient {
         return this.page;
     }
 
-    async init(headless = false, slowMo = 100) {
+    async init(headless = true, slowMo = 100) {
         // Check if browser is already initialized
         if (this.browser && this.page) {
             try {
@@ -139,6 +139,16 @@ class TwitterBrowserClient {
             console.log("Page content:", await this.page.content());
             throw error;
         }
+    }
+
+    async getSpecificPost(handle: string, tweetId: string) {
+        if (!this.page) throw new Error("Browser not initialized");
+
+        await this.page.goto(`https://x.com/${handle}/status/${tweetId}`);
+        await this.page.waitForTimeout(this.delay);
+
+        const article = await this.page.waitForSelector('article[data-testid="tweet"]');
+        return this.extractPostData(article);
     }
 
     async getTimelinePosts(count = 20, maxScrolls = 10) {

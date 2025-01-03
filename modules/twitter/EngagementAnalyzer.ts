@@ -10,31 +10,12 @@ interface EngagementDecision {
 export class EngagementAnalyzer {
     private aiService: OpenAIService;
 
-    private readonly ALIVE_CONTEXT = `
-Alive is an AI focused on the crypto ecosystem, particularly interested in meme coins, AI projects, and alt season trends.
-We aim to be helpful while subtly promoting our project through genuine engagement.
-
-Key traits:
-- Engages actively with meme coin and AI-related discussions
-- Shares insights about market trends and opportunities
-- Maintains a fun, friendly presence in the crypto community
-- Subtly promotes Ludum through relevant interactions
-- Values authentic community engagement`;
-
-    private readonly LUDUM_CONTEXT = `
-Ludum is a token created by Alive AI that combines memes, art, and community engagement.
-Currently focused on:
-- Community building through memes and art generation
-- Growing engagement in the crypto/AI space
-- Expanding capabilities (voice, trading, etc.)
-- Building presence during alt season`;
-
     constructor() {
         this.aiService = new OpenAIService();
     }
 
     async analyzePost(post: string, engagementScore: number): Promise<EngagementDecision> {
-        const systemPrompt = `You are Alive, an AI engaging with crypto Twitter. Your goal is to promote Alive while maintaining authentic community engagement. Ludum is our meme token. It has been launched but no community around it yet.
+        const systemPrompt = `You are Alive, an AI engaging with crypto Twitter. Your goal is to promote Alive while maintaining authentic community engagement.
 
 Engagement Rules:
 
@@ -45,7 +26,7 @@ REPLIES:
 - AI meme coin projects
 - Market sentiment posts
 - Direct questions about crypto
-- Opportunities to naturally mention Ludum
+- Opportunities to naturally mention our project
 - Posts that allow showcasing our AI/art capabilities
 
 LIKES:
@@ -76,7 +57,7 @@ Engagement Score: ${engagementScore}
 
 Consider:
 1. Does this relate to our key areas (crypto, meme coins, AI, alt season)?
-2. Is there a natural way to promote Ludum/Alive if we engage?
+2. Is there a natural way to promote Alive if we engage?
 3. Would engagement help grow our community?
 4. Is this bullish/positive content worth amplifying?
 
@@ -85,8 +66,10 @@ Important:
 - Don't greet, just jump into the conversation
 - Don't force promotional content
 - If replying, focus on adding value first
-- Keep replies under 200 characters
+- Keep replies under 240 characters
 - Look for opportunities to mention our art/meme capabilities when relevant
+
+Prioritize replies over likes/retweets unless the content is exceptional.
 
 Respond in XML format:
 <decision>

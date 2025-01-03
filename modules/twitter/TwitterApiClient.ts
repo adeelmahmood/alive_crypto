@@ -17,6 +17,58 @@ class TwitterApiClient {
         this.rClient = userClient.readOnly;
     }
 
+    async postTweetWithAudio(
+        text: string,
+        audioBuffer: Buffer,
+        replyToTweetId?: string
+    ): Promise<{ data: { id: string } } | undefined> {
+        try {
+            // Step 1: Upload the media to Twitter
+            const media = await this.rwClient.v1.uploadMedia(
+                audioBuffer,
+                {
+                    mimeType: "video/mp4", // Twitter requires 'mp4' or 'longmp4' for audio
+                    target: "tweet", // Ensure the media is intended for a tweet
+                },
+                true
+            );
+
+            console.log("Media uploaded successfully. Media:", media);
+            const mediaId = media.media_id_string;
+
+            // Step 2: Wait for initial processing
+            console.log("Waiting for initial processing...");
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+
+            // Step 3: Check media processing status
+            console.log("Starting media status check...");
+            await this.checkMediaStatus(mediaId);
+            console.log("Media processing completed successfully");
+
+            // Step 2: Create the tweet with the uploaded media
+            if (replyToTweetId) {
+                const tweet = await this.rwClient.v2.tweet(text, {
+                    media: {
+                        media_ids: [mediaId],
+                    },
+                    reply: { in_reply_to_tweet_id: replyToTweetId },
+                });
+                return tweet;
+            }
+
+            const tweet = await this.rwClient.v2.tweet(text, {
+                media: {
+                    media_ids: [mediaId],
+                },
+            });
+
+            return tweet;
+        } catch (error) {
+            console.error("Error posting tweet with audio:", error);
+            throw error;
+        }
+    }
+
     async postTweetWithImage(
         text: string,
         imageBuffer: Buffer,
@@ -126,6 +178,61 @@ class TwitterApiClient {
         } catch (error) {
             console.error("Error checking rate limit:", error);
         }
+    }
+
+    private async checkMediaStatus(mediaId: string): Promise<void> {
+        const MAX_RETRIES = 20;
+        const RETRY_INTERVAL_MS = 1000; // 1 second
+
+        for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+            try {
+                console.log(
+                    `Checking media status for Media ID: ${mediaId} (Attempt ${attempt + 1})`
+                );
+
+                // Get media status using v1.get
+                const statusResponse = await this.rwClient.v1.get("media/upload.json", {
+                    command: "STATUS",
+                    media_id: mediaId,
+                });
+
+                console.log("Media status response:", statusResponse);
+
+                // Check processing state
+                const processingInfo = statusResponse.processing_info;
+                if (!processingInfo) {
+                    console.log("Media processing complete.");
+                    return;
+                }
+
+                const state = processingInfo.state;
+                console.log(`Media processing state: ${state}`);
+
+                if (state === "succeeded") {
+                    console.log("Media processing succeeded.");
+                    return;
+                } else if (state === "failed") {
+                    throw new Error(
+                        `Media processing failed: ${
+                            processingInfo.error?.message || "Unknown error"
+                        }`
+                    );
+                }
+
+                // If pending or in progress, wait for the recommended time
+                const checkAfterSecs = processingInfo.check_after_secs || 1;
+                await new Promise((resolve) => setTimeout(resolve, checkAfterSecs * 1000));
+            } catch (error) {
+                console.error(`Error checking media status (attempt ${attempt + 1}):`, error);
+                if (attempt === MAX_RETRIES - 1) {
+                    throw error; // Throw on last attempt
+                }
+                // Wait before retrying
+                await new Promise((resolve) => setTimeout(resolve, RETRY_INTERVAL_MS));
+            }
+        }
+
+        throw new Error("Media processing timed out.");
     }
 }
 

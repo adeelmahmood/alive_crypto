@@ -1,10 +1,12 @@
 import MarketDataFetcher from "@/modules/crypto/MarketDataFetcher";
 import CryptoNewsFetcher from "@/modules/news/CryptoNewsFetcher";
 import { TweetDatastore } from "./TweetDatastore";
-import { twitterPostPrompt, twitterPostSystemPrompt } from "../prompts/twitterPostPrompt";
 import { printHeader } from "../utils/console";
 import { OpenAIService } from "../ai/OpenAIService";
 import TwitterApiClient from "./TwitterApiClient";
+import TwitterBot from "./TwitterBot";
+import { twitterPostPrompt, twitterPostSystemPrompt } from "../prompts/twitterPostPrompt";
+import { generateReflectionPrompt } from "../prompts/twitterReflectionPrompt";
 
 interface TwitterComposerConfig {
     historySize?: number;
@@ -24,6 +26,7 @@ export class TwitterComposer {
     private tweetDatastore: TweetDatastore;
     private config: TwitterComposerConfig;
     private twitterClient: TwitterApiClient;
+    private twitterBot: TwitterBot;
 
     constructor(config: TwitterComposerConfig = { historySize: 3 }) {
         this.marketDataFetcher = MarketDataFetcher.getInstance();
@@ -33,6 +36,7 @@ export class TwitterComposer {
         this.tweetDatastore = new TweetDatastore();
         this.config = config;
         this.twitterClient = new TwitterApiClient();
+        this.twitterBot = new TwitterBot();
     }
 
     private async gatherData() {
@@ -66,14 +70,16 @@ export class TwitterComposer {
     }
 
     private async generateTweet(data: TweetData): Promise<string> {
-        const systemPrompt = twitterPostSystemPrompt();
-        const userPrompt = twitterPostPrompt(
-            data.history,
-            data.majorCoins,
-            data.trendingCoins,
-            data.news
-        );
-        // printHeader("TWITTER USER PROMPT>> ", userPrompt);
+        // const systemPrompt = twitterPostSystemPrompt();
+        const systemPrompt = `You are Alive, an AI engaging with crypto Twitter.`;
+        // const userPrompt = twitterPostPrompt(
+        //     data.majorCoins,
+        //     data.trendingCoins,
+        //     data.news,
+        //     data.history
+        // );
+        const userPrompt = generateReflectionPrompt(data.history);
+        printHeader("TWITTER USER PROMPT>> ", userPrompt);
 
         const response = await this.aiService.generateResponse(systemPrompt, userPrompt);
         return response.response;
@@ -82,33 +88,33 @@ export class TwitterComposer {
     private async publishTweet(content: string) {
         const record = await this.tweetDatastore.saveTweet(content);
 
-        const tweet = await this.twitterClient.postTweet(record.content);
-        if (tweet?.data?.id) {
-            await this.markTweetAsPosted(record.id, tweet.data.id);
+        try {
+            const tweet = await this.twitterClient.postTweet(record.content);
+            if (tweet?.data?.id) {
+                await this.markTweetAsPosted(record.id, tweet.data.id);
+            }
+        } catch (e) {
+            console.log("Error posting tweet using API, falling back to browser");
+            await this.twitterBot.init();
+            await this.twitterBot.goToPage("https://twitter.com/compose/tweet");
+            await this.twitterBot.postTweet(record.content);
+            await this.twitterBot.close();
         }
 
         return record;
     }
 
-    public async composeTweet(confirm = false) {
-        try {
-            // gather data
-            const tweetData = await this.gatherTweetData();
+    public async composeTweet() {
+        // gather data
+        const tweetData = await this.gatherTweetData();
 
-            // generate tweet
-            let tweetResponse = await this.generateTweet(tweetData);
-            console.log("Generated tweet:", tweetResponse);
+        // generate tweet
+        let tweetResponse = await this.generateTweet(tweetData);
+        console.log("Generated tweet:", tweetResponse);
 
-            // publish tweet
-            const record = await this.publishTweet(tweetResponse);
-            return { record };
-        } catch (error) {
-            console.error("Error in tweet composition:", error);
-            throw new Error(
-                "Failed to compose tweet: " +
-                    (error instanceof Error ? error.message : "Unknown error")
-            );
-        }
+        // publish tweet
+        const record = await this.publishTweet(tweetResponse);
+        return { record };
     }
 
     public async markTweetAsPosted(id: number, twitterPostId: string): Promise<void> {
